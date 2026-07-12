@@ -1,7 +1,7 @@
 [project]
 name = "MonoBrowser"
 version = "0.1.0"
-description = ""
+description = "A minimal Browser"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

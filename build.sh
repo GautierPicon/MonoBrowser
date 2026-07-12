@@ -21,6 +21,8 @@ uv run pyinstaller \
     --windowed \
     --name "MonoBrowser" \
     --icon icon.icns \
+    --add-data "icon.icns:." \
+    --add-data "pyproject.toml:." \
     main.py
 
 FW="dist/MonoBrowser.app/Contents/Frameworks/PyQt6/Qt6/lib/QtWebEngineCore.framework/Versions"

@@ -1,15 +1,17 @@
 import re
 import sys
+import tomllib
 from pathlib import Path
 from urllib.parse import quote
 
-from PyQt6.QtCore import QUrl
-from PyQt6.QtGui import QIcon
+from PyQt6.QtCore import Qt, QUrl
+from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtWidgets import (
     QApplication,
     QHBoxLayout,
     QLineEdit,
     QMainWindow,
+    QMessageBox,
     QPushButton,
     QStackedWidget,
     QTabBar,
@@ -18,7 +20,20 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 
-ICON_PATH = Path(__file__).parent / "icon.png"
+def _is_bundled():
+    return getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS")
+
+
+def _resource_path(name):
+    if _is_bundled():
+        return Path(sys._MEIPASS) / name
+    return Path(__file__).parent / name
+
+
+ICON_PATH = _resource_path("icon.icns")
+if not ICON_PATH.exists():
+    ICON_PATH = _resource_path("icon.png")
+TOML_PATH = _resource_path("pyproject.toml")
 DEFAULT_URL = "https://www.google.com"
 
 KNOWN_SCHEMES = ("http://", "https://", "ftp://", "file://", "about:", "chrome://")
@@ -33,6 +48,14 @@ def is_likely_url(text):
         or text.startswith(("localhost", "127.", "10.", "192.168."))
         or re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}', text)
     )
+
+
+def get_version():
+    try:
+        data = tomllib.loads(TOML_PATH.read_text())
+        return data["project"]["version"]
+    except Exception:
+        return "0.0.0"
 
 
 def build_search_url(query):
@@ -58,7 +81,6 @@ class SimpleBrowser(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("MonoBrowser")
-        self.setWindowIcon(QIcon(str(ICON_PATH)))
         self.resize(1200, 800)
 
         central = QWidget()
@@ -67,11 +89,22 @@ class SimpleBrowser(QMainWindow):
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
 
+        self.setup_menu()
         self.setup_tab_bar(root)
         self.setup_url_bar(root)
         self.setup_content(root)
 
         self.add_tab()
+
+    def setup_menu(self):
+        file_menu = self.menuBar().addMenu("File")
+        about_action = QAction("About MonoBrowser", self)
+        about_action.setMenuRole(QAction.MenuRole.AboutRole)
+        about_action.triggered.connect(self.about)
+        file_menu.addAction(about_action)
+
+    def about(self):
+        QMessageBox.about(self, "About MonoBrowser", f"MonoBrowser\nversion {get_version()}\n\nA minimal web browser.")
 
     def setup_tab_bar(self, root):
         row = QWidget()
@@ -160,7 +193,10 @@ class SimpleBrowser(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon(str(ICON_PATH)))
+    app.setApplicationName("MonoBrowser")
+    app.setApplicationVersion(get_version())
+    if not _is_bundled():
+        app.setWindowIcon(QIcon(str(ICON_PATH)))
     window = SimpleBrowser()
     window.show()
     sys.exit(app.exec())
