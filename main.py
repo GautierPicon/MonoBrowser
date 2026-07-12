@@ -2,12 +2,16 @@ import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QLineEdit, QToolBar
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtCore import QUrl
+from PyQt6.QtGui import QIcon
+from pathlib import Path
 
+ICON_PATH = Path(__file__).parent / "icon.png"
 
 class SimpleBrowser(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Mon Navigateur")
+        self.setWindowTitle("MonoBrowser")
+        self.setWindowIcon(QIcon(str(ICON_PATH)))
         self.resize(1200, 800)
 
         self.browser = QWebEngineView()
@@ -35,6 +39,7 @@ class SimpleBrowser(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon(str(ICON_PATH)))
     window = SimpleBrowser()
     window.show()
     sys.exit(app.exec())
