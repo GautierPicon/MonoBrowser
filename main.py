@@ -1,3 +1,5 @@
+import base64
+import platform
 import re
 import sys
 import tomllib
@@ -11,7 +13,6 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLineEdit,
     QMainWindow,
-    QMessageBox,
     QPushButton,
     QStackedWidget,
     QTabBar,
@@ -37,7 +38,8 @@ TOML_PATH = _resource_path("pyproject.toml")
 DEFAULT_URL = "https://www.google.com"
 
 KNOWN_SCHEMES = ("http://", "https://", "ftp://", "file://", "about:", "chrome://")
-URL_SCHEMES = ("http://", "https://", "ftp://", "file://")
+URL_SCHEMES = ("http://", "https://", "ftp://", "file://", "about:")
+ABOUT_HTML_PATH = _resource_path("version.html")
 
 
 def is_likely_url(text):
@@ -104,7 +106,28 @@ class SimpleBrowser(QMainWindow):
         file_menu.addAction(about_action)
 
     def about(self):
-        QMessageBox.about(self, "About MonoBrowser", f"MonoBrowser\nversion {get_version()}\n\nA minimal web browser.")
+        page = TabPage()
+
+        self.stack.addWidget(page)
+        index = self.tab_bar.addTab("About")
+        self.tab_bar.setCurrentIndex(index)
+        self.stack.setCurrentWidget(page)
+
+        html_template = ABOUT_HTML_PATH.read_text(encoding="utf-8")
+
+        icon_path = _resource_path("icon.png")
+        b64 = base64.b64encode(icon_path.read_bytes()).decode()
+        icon_data_uri = f"data:image/png;base64,{b64}"
+
+        html = (html_template
+                .replace("{{ICON}}", icon_data_uri)
+                .replace("{{VERSION}}", get_version())
+                .replace("{{ARCHITECTURE}}", platform.machine()))
+
+        page.browser.urlChanged.connect(self.on_url_changed)
+        page.browser.setHtml(html, QUrl("about:version"))
+        self.url_bar.setText("about:version")
+        self.tab_bar.setTabText(index, "About")
 
     def setup_tab_bar(self, root):
         row = QWidget()
@@ -181,6 +204,10 @@ class SimpleBrowser(QMainWindow):
 
         text = self.url_bar.text().strip()
         if not text:
+            return
+
+        if text == "about:version":
+            self.about()
             return
 
         if " " in text or not is_likely_url(text):
