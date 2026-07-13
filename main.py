@@ -39,6 +39,7 @@ KNOWN_SCHEMES = ("http://", "https://", "ftp://", "file://", "about:", "chrome:/
 URL_SCHEMES = ("http://", "https://", "ftp://", "file://", "about:")
 ABOUT_HTML_PATH = _resource_path("pages/version.html")
 NEWTAB_HTML_PATH = _resource_path("pages/newtab.html")
+SETTINGS_HTML_PATH = _resource_path("pages/settings.html")
 
 
 def is_likely_url(text):
@@ -57,10 +58,6 @@ def get_version():
         return data["project"]["version"]
     except Exception:
         return "0.0.0"
-
-
-def build_search_url(query):
-    return QUrl(f"https://www.google.com/search?q={quote(query)}")
 
 
 def build_url(text):
@@ -90,6 +87,12 @@ class SimpleBrowser(QMainWindow):
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
 
+        self.search_engines = {
+            "google": "https://www.google.com/search?q={}",
+            "duckduckgo": "https://duckduckgo.com/?q={}",
+        }
+        self.current_search_engine = "google"
+
         self.setup_menu()
         self.setup_tab_bar(root)
         self.setup_url_bar(root)
@@ -99,6 +102,12 @@ class SimpleBrowser(QMainWindow):
 
     def setup_menu(self):
         file_menu = self.menuBar().addMenu("File")
+
+        settings_action = QAction("Settings…", self)
+        settings_action.setMenuRole(QAction.MenuRole.PreferencesRole)
+        settings_action.triggered.connect(self.settings)
+        file_menu.addAction(settings_action)
+
         about_action = QAction("About MonoBrowser", self)
         about_action.setMenuRole(QAction.MenuRole.AboutRole)
         about_action.triggered.connect(self.about)
@@ -147,6 +156,26 @@ class SimpleBrowser(QMainWindow):
             self.url_bar.setFocus(),
             self.url_bar.selectAll(),
         ))
+
+    def settings(self):
+        page = TabPage()
+        self.stack.addWidget(page)
+        index = self.tab_bar.addTab("Settings")
+        self.tab_bar.setCurrentIndex(index)
+        self.stack.setCurrentWidget(page)
+        browser = page.browser
+        browser.urlChanged.connect(self.on_url_changed)
+        browser.titleChanged.connect(self.on_title_changed)
+        self._render_settings(browser)
+        self.url_bar.setText("about:settings")
+        self.tab_bar.setTabText(index, "Settings")
+
+    def _render_settings(self, browser):
+        html = SETTINGS_HTML_PATH.read_text(encoding="utf-8")
+        engine = self.current_search_engine
+        html = html.replace("{{#google}}", " selected" if engine == "google" else "")
+        html = html.replace("{{#duckduckgo}}", " selected" if engine == "duckduckgo" else "")
+        browser.setHtml(html, QUrl("about:settings"))
 
     def setup_tab_bar(self, root):
         row = QWidget()
@@ -220,8 +249,16 @@ class SimpleBrowser(QMainWindow):
             self.url_bar.setText(browser.url().toString())
 
     def on_url_changed(self, qurl):
+        url_str = qurl.toString()
+        if url_str.startswith("https://monobrowser.internal/set-search?"):
+            name = url_str.split("?")[1]
+            if name in self.search_engines:
+                self.current_search_engine = name
+                self._render_settings(self.sender())
+            return
+
         if self.sender() is self.current_browser():
-            self.url_bar.setText(qurl.toString())
+            self.url_bar.setText(url_str)
             if self.url_bar.hasFocus():
                 self.url_bar.selectAll()
 
@@ -247,8 +284,12 @@ class SimpleBrowser(QMainWindow):
             self.new_tab_page()
             return
 
+        if text == "about:settings":
+            self.settings()
+            return
+
         if " " in text or not is_likely_url(text):
-            url = build_search_url(text)
+            url = QUrl(self.search_engines[self.current_search_engine].format(quote(text)))
         else:
             url = build_url(text)
 
