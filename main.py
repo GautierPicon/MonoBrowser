@@ -35,11 +35,10 @@ ICON_PATH = _resource_path("icon.icns")
 if not ICON_PATH.exists():
     ICON_PATH = _resource_path("icon.png")
 TOML_PATH = _resource_path("pyproject.toml")
-DEFAULT_URL = "https://www.google.com"
-
 KNOWN_SCHEMES = ("http://", "https://", "ftp://", "file://", "about:", "chrome://")
 URL_SCHEMES = ("http://", "https://", "ftp://", "file://", "about:")
-ABOUT_HTML_PATH = _resource_path("version.html")
+ABOUT_HTML_PATH = _resource_path("pages/version.html")
+NEWTAB_HTML_PATH = _resource_path("pages/newtab.html")
 
 
 def is_likely_url(text):
@@ -129,6 +128,21 @@ class SimpleBrowser(QMainWindow):
         self.url_bar.setText("about:version")
         self.tab_bar.setTabText(index, "About")
 
+    def new_tab_page(self):
+        page = TabPage()
+
+        self.stack.addWidget(page)
+        index = self.tab_bar.addTab("New Tab")
+        self.tab_bar.setCurrentIndex(index)
+        self.stack.setCurrentWidget(page)
+
+        html = NEWTAB_HTML_PATH.read_text(encoding="utf-8")
+
+        page.browser.urlChanged.connect(self.on_url_changed)
+        page.browser.setHtml(html, QUrl("about:newtab"))
+        self.url_bar.setText("about:newtab")
+        self.tab_bar.setTabText(index, "New Tab")
+
     def setup_tab_bar(self, root):
         row = QWidget()
         layout = QHBoxLayout(row)
@@ -161,8 +175,11 @@ class SimpleBrowser(QMainWindow):
         root.addWidget(self.stack, 1)
 
     def add_tab(self, url=None):
+        if url is None:
+            self.new_tab_page()
+            return
         page = TabPage()
-        page.browser.setUrl(url or QUrl(DEFAULT_URL))
+        page.browser.setUrl(url)
         page.browser.urlChanged.connect(self.on_url_changed)
 
         self.stack.addWidget(page)
@@ -208,6 +225,10 @@ class SimpleBrowser(QMainWindow):
 
         if text == "about:version":
             self.about()
+            return
+
+        if text == "about:newtab":
+            self.new_tab_page()
             return
 
         if " " in text or not is_likely_url(text):
