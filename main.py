@@ -6,7 +6,7 @@ import tomllib
 from pathlib import Path
 from urllib.parse import quote
 
-from PyQt6.QtCore import Qt, QUrl
+from PyQt6.QtCore import Qt, QEvent, QTimer, QUrl
 from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtWidgets import (
     QApplication,
@@ -140,8 +140,12 @@ class SimpleBrowser(QMainWindow):
 
         page.browser.urlChanged.connect(self.on_url_changed)
         page.browser.setHtml(html, QUrl("about:newtab"))
-        self.url_bar.setText("about:newtab")
         self.tab_bar.setTabText(index, "New Tab")
+        QTimer.singleShot(0, lambda: (
+            self.url_bar.setText("about:newtab"),
+            self.url_bar.setFocus(),
+            self.url_bar.selectAll(),
+        ))
 
     def setup_tab_bar(self, root):
         row = QWidget()
@@ -168,7 +172,13 @@ class SimpleBrowser(QMainWindow):
     def setup_url_bar(self, root):
         self.url_bar = QLineEdit()
         self.url_bar.returnPressed.connect(self.navigate_to_url)
+        self.url_bar.installEventFilter(self)
         root.addWidget(self.url_bar)
+
+    def eventFilter(self, obj, event):
+        if obj is self.url_bar and event.type() == QEvent.Type.MouseButtonPress:
+            QTimer.singleShot(0, self.url_bar.selectAll)
+        return super().eventFilter(obj, event)
 
     def setup_content(self, root):
         self.stack = QStackedWidget()
@@ -210,6 +220,8 @@ class SimpleBrowser(QMainWindow):
     def on_url_changed(self, qurl):
         if self.sender() is self.current_browser():
             self.url_bar.setText(qurl.toString())
+            if self.url_bar.hasFocus():
+                self.url_bar.selectAll()
             index = self.tab_bar.currentIndex()
             title = qurl.host() or "New Tab"
             self.tab_bar.setTabText(index, title)
