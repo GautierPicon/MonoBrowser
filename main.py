@@ -139,6 +139,7 @@ class SimpleBrowser(QMainWindow):
         html = NEWTAB_HTML_PATH.read_text(encoding="utf-8")
 
         page.browser.urlChanged.connect(self.on_url_changed)
+        page.browser.titleChanged.connect(self.on_title_changed)
         page.browser.setHtml(html, QUrl("about:newtab"))
         self.tab_bar.setTabText(index, "New Tab")
         QTimer.singleShot(0, lambda: (
@@ -191,6 +192,7 @@ class SimpleBrowser(QMainWindow):
         page = TabPage()
         page.browser.setUrl(url)
         page.browser.urlChanged.connect(self.on_url_changed)
+        page.browser.titleChanged.connect(self.on_title_changed)
 
         self.stack.addWidget(page)
         index = self.tab_bar.addTab("New Tab")
@@ -222,9 +224,11 @@ class SimpleBrowser(QMainWindow):
             self.url_bar.setText(qurl.toString())
             if self.url_bar.hasFocus():
                 self.url_bar.selectAll()
+
+    def on_title_changed(self, title):
+        if self.sender() is self.current_browser():
             index = self.tab_bar.currentIndex()
-            title = qurl.host() or "New Tab"
-            self.tab_bar.setTabText(index, title)
+            self.tab_bar.setTabText(index, title or "New Tab")
 
     def navigate_to_url(self):
         browser = self.current_browser()
