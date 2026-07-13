@@ -23,6 +23,7 @@ uv run pyinstaller \
     --icon icon.icns \
     --add-data "icon.icns:." \
     --add-data "pyproject.toml:." \
+    --add-data "pages:pages" \
     main.py
 
 FW="dist/MonoBrowser.app/Contents/Frameworks/PyQt6/Qt6/lib/QtWebEngineCore.framework/Versions"
