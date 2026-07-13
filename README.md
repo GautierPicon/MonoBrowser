@@ -1,6 +1,6 @@
 # MonoBrowser
 
-<img src="icon.png" alt="MonoBrowser logo" width="64" height="64">
+<img src="src/assets/icon.png" alt="MonoBrowser logo" width="64" height="64">
 
 Minimal browser built with **PyQt6** + **QtWebEngine**.
 
