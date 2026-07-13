@@ -2,10 +2,10 @@
 
 
 a = Analysis(
-    ['main.py'],
-    pathex=[],
+    ['src/monobrowser/main.py'],
+    pathex=['src/monobrowser'],
     binaries=[],
-    datas=[('icon.icns', '.'), ('pyproject.toml', '.'), ('pages', 'pages')],
+    datas=[('src/assets/icon.icns', '.'), ('src/assets/icon.png', '.'), ('pyproject.toml', '.'), ('src/monobrowser/about-pages', 'about-pages')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -32,7 +32,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['icon.icns'],
+    icon=['src/assets/icon.icns'],
 )
 coll = COLLECT(
     exe,
@@ -46,6 +46,6 @@ coll = COLLECT(
 app = BUNDLE(
     coll,
     name='MonoBrowser.app',
-    icon='icon.icns',
+    icon='src/assets/icon.icns',
     bundle_identifier=None,
 )

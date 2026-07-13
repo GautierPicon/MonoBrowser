@@ -16,10 +16,22 @@ def _resource_path(name):
     return Path(__file__).parent / name
 
 
-ICON_PATH = _resource_path("icon.icns")
+def _assets_path(name):
+    if _is_bundled():
+        return Path(sys._MEIPASS) / name
+    return Path(__file__).parent.parent / "assets" / name
+
+
+def _project_root():
+    if _is_bundled():
+        return Path(sys._MEIPASS)
+    return Path(__file__).parent.parent.parent
+
+
+ICON_PATH = _assets_path("icon.icns")
 if not ICON_PATH.exists():
-    ICON_PATH = _resource_path("icon.png")
-TOML_PATH = _resource_path("pyproject.toml")
+    ICON_PATH = _assets_path("icon.png")
+TOML_PATH = _project_root() / "pyproject.toml"
 
 KNOWN_SCHEMES = ("http://", "https://", "ftp://", "file://", "about:", "chrome://")
 URL_SCHEMES = ("http://", "https://", "ftp://", "file://", "about:")

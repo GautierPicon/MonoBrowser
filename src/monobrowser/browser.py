@@ -13,7 +13,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from pages import render_about, render_newtab, render_settings
+from about_pages import render_about, render_newtab, render_settings
 from tab_page import TabPage
 from utils import build_url, is_likely_url
 

@@ -3,16 +3,16 @@ import platform
 
 from PyQt6.QtCore import QUrl
 
-from utils import _resource_path, get_version
+from utils import _assets_path, _resource_path, get_version
 
-ABOUT_HTML_PATH = _resource_path("pages/version.html")
-NEWTAB_HTML_PATH = _resource_path("pages/newtab.html")
-SETTINGS_HTML_PATH = _resource_path("pages/settings.html")
+ABOUT_HTML_PATH = _resource_path("about-pages/version.html")
+NEWTAB_HTML_PATH = _resource_path("about-pages/newtab.html")
+SETTINGS_HTML_PATH = _resource_path("about-pages/settings.html")
 
 
 def render_about(browser):
     html_template = ABOUT_HTML_PATH.read_text(encoding="utf-8")
-    icon_path = _resource_path("icon.png")
+    icon_path = _assets_path("icon.png")
     b64 = base64.b64encode(icon_path.read_bytes()).decode()
     icon_data_uri = f"data:image/png;base64,{b64}"
     html = (html_template
