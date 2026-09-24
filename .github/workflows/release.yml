@@ -1,0 +1,73 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Sync dependencies
+        run: uv sync --frozen
+
+      - name: Lint
+        run: uv run ruff check . && uv run ruff format --check .
+
+      - name: Typecheck
+        run: uv run mypy src tests
+
+      - name: Test
+        run: uv run pytest -q
+
+      - name: Build .app
+        run: ./build.sh
+
+      - name: Zip bundle
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          ditto -c -k --sequesterRsrc --keepParent \
+            dist/MonoBrowser.app "dist/MonoBrowser-${VERSION}-macOS-arm64.zip"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          cat > "$RUNNER_TEMP/notes.md" <<'EOF'
+          ## Features
+
+          - Tabbed browsing (new tab button, closable tabs, page titles)
+          - Smart URL bar: URLs open directly, anything else goes to the search engine
+          - Back / forward / reload navigation buttons with custom icons
+          - `target="_blank"` links and `window.open()` popups open in a new tab
+          - Search engine choice (Google / DuckDuckGo) in `about:settings`
+          - Built-in pages: `about:version`, `about:newtab`, `about:settings`
+          - Standalone `.app` bundle via PyInstaller
+
+          ## Installation
+
+          1. Download the `MonoBrowser-*-macOS-arm64.zip` attached below
+          2. Unzip and drag `MonoBrowser.app` to `/Applications`
+          3. Launch it
+
+          > [!WARNING]
+          > The app is not code-signed (no Apple Developer account yet). On first launch macOS may refuse to open it ("developer cannot be verified"). Workaround: right-click → Open, or run `xattr -cr /Applications/MonoBrowser.app`.
+
+          ## Requirements
+
+          - macOS on Apple Silicon
+          - No Python installation needed, everything is bundled
+          EOF
+          gh release create "$GITHUB_REF_NAME" \
+            "dist/MonoBrowser-${VERSION}-macOS-arm64.zip" \
+            --title "MonoBrowser $VERSION" \
+            --notes-file "$RUNNER_TEMP/notes.md"

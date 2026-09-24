@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Tiny PyQt6 + QtWebEngine browser. No CI.
+Tiny PyQt6 + QtWebEngine browser.
 
 ## Run / build
 
@@ -16,6 +16,10 @@ Tiny PyQt6 + QtWebEngine browser. No CI.
 - `uv run mypy src tests`
 - `uv run pytest -q` (single file: `uv run pytest tests/test_utils.py -q`)
 - Tests cover only `utils.py` (headless-safe: no `QApplication`). GUI code (`browser.py`, `tab_page.py`) needs a display — don't add widget tests.
+
+## CI
+
+- Release workflow `.github/workflows/release.yml` on tag `v*` (macos-14 arm64): verify → `./build.sh` → `ditto` zip → GitHub Release with zip asset. Build is unsigned (Gatekeeper warning applies).
 
 ## Code map
 
