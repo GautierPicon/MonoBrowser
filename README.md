@@ -7,9 +7,13 @@ Minimal browser built with **PyQt6** + **QtWebEngine**.
 ## Development
 
 ```bash
-uv run src/monobrowser/main.py
+uv run -m monobrowser.main
 ```
+# Tests
 
+```bash
+uv run ruff check . && uv run ruff format --check . && uv run mypy src tests && uv run pytest -q
+```
 ## Build (standalone .app)
 
 ```bash
