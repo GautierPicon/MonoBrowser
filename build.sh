@@ -27,8 +27,6 @@ uv run pyinstaller \
     --add-data "src/assets/back.svg:." \
     --add-data "src/assets/forward.svg:." \
     --add-data "src/assets/reload.svg:." \
-    --add-data "src/assets/plus.svg:." \
-    --add-data "src/assets/close.svg:." \
     --add-data "pyproject.toml:." \
     --add-data "src/monobrowser/about-pages:about-pages" \
     src/monobrowser/main.py

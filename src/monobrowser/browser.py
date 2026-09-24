@@ -1,4 +1,3 @@
-from urllib.parse import quote
 
 from PyQt6.QtCore import QEvent, QSize, QTimer, QUrl
 from PyQt6.QtGui import QAction, QIcon
@@ -9,12 +8,12 @@ from PyQt6.QtWidgets import (
     QMainWindow,
     QPushButton,
     QStackedWidget,
-    QTabBar,
     QVBoxLayout,
     QWidget,
 )
 
 from monobrowser.about_pages import render_about, render_newtab, render_settings
+from monobrowser.tab_bar import TABSTRIP_BG, ChromeTabBar
 from monobrowser.tab_page import TabPage
 from monobrowser.utils import _assets_path, build_url, is_likely_url
 
@@ -117,24 +116,23 @@ class SimpleBrowser(QMainWindow):
 
     def setup_tab_bar(self, root):
         row = QWidget()
+        row.setStyleSheet(f"background: {TABSTRIP_BG.name()};")
         layout = QHBoxLayout(row)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
+        layout.setContentsMargins(8, 8, 8, 0)
+        layout.setSpacing(4)
 
-        self.tab_bar = QTabBar()
-        self.tab_bar.setTabsClosable(True)
-        self.tab_bar.setExpanding(False)
+        self.tab_bar = ChromeTabBar()
         self.tab_bar.tabCloseRequested.connect(self.close_tab)
         self.tab_bar.currentChanged.connect(self.on_tab_changed)
         layout.addWidget(self.tab_bar)
 
-        close_icon = _assets_path("close.svg")
-        if close_icon.exists():
-            self.tab_bar.setStyleSheet(
-                f"QTabBar::close-button {{ image: url({close_icon.as_uri()}); }}"
-            )
-
-        new_tab_btn = _nav_button("plus.svg", "+", "New Tab")
+        new_tab_btn = QPushButton("+")
+        new_tab_btn.setFixedSize(28, 28)
+        new_tab_btn.setToolTip("New Tab")
+        new_tab_btn.setStyleSheet(
+            "QPushButton { border: none; border-radius: 14px; font-size: 16px; }"
+            "QPushButton:hover { background: #c7cbd1; }"
+        )
         new_tab_btn.clicked.connect(lambda: self.add_tab())
         layout.addWidget(new_tab_btn)
 
