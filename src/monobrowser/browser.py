@@ -22,7 +22,6 @@ from monobrowser.utils import _assets_path, build_url, is_likely_url
 
 
 def _nav_button(icon_name: str, fallback_text: str, tooltip: str) -> QPushButton:
-    """Navigation button with SVG icon, falling back to a text symbol."""
     button = QPushButton()
     icon_path = _assets_path(icon_name)
     if icon_path.exists():
@@ -217,7 +216,6 @@ class SimpleBrowser(QMainWindow):
         self.stack.setCurrentWidget(page)
 
     def create_popup_tab(self) -> QWebEnginePage:
-        """Create a new tab for target=_blank / window.open requests."""
         page = TabPage(new_window_callback=self.create_popup_tab)
         self._connect_browser(page.browser)
 

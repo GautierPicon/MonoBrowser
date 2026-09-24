@@ -6,18 +6,12 @@ from PyQt6.QtWidgets import QVBoxLayout, QWidget
 
 
 class BrowserPage(QWebEnginePage):
-    """Page that opens new windows (target=_blank, window.open) in a new tab.
-
-    The default createWindow() does nothing, so popup links die silently.
-    The browser injects a window_factory that creates a tab and returns its page.
-    """
-
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.window_factory: Callable[[], QWebEnginePage] | None = None
 
     def createWindow(self, window_type: QWebEnginePage.WebWindowType) -> QWebEnginePage:
-        # All popups (tabs and dialogs) open in a new browser tab.
+
         if self.window_factory is not None:
             return self.window_factory()
         return BrowserPage()
