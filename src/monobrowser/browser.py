@@ -19,19 +19,7 @@ from monobrowser.about_pages import render_about, render_newtab, render_settings
 from monobrowser.tab_bar import TABSTRIP_BG, ChromeTabBar
 from monobrowser.tab_page import TabPage
 from monobrowser.utils import _assets_path, build_url, is_likely_url
-
-
-def _nav_button(icon_name: str, fallback_text: str, tooltip: str) -> QPushButton:
-    button = QPushButton()
-    icon_path = _assets_path(icon_name)
-    if icon_path.exists():
-        button.setIcon(QIcon(str(icon_path)))
-        button.setIconSize(QSize(18, 18))
-    else:
-        button.setText(fallback_text)
-    button.setToolTip(tooltip)
-    button.setFixedWidth(30)
-    return button
+from monobrowser.widgets import nav_button
 
 
 class SimpleBrowser(QMainWindow):
@@ -89,26 +77,23 @@ class SimpleBrowser(QMainWindow):
                 return i
         return -1
 
-    def about(self):
+    def _open_tab(self, title: str) -> TabPage:
         page = TabPage(new_window_callback=self.create_popup_tab)
+        self._connect_browser(page.browser)
         self.stack.addWidget(page)
-        index = self.tab_bar.addTab("About")
+        index = self.tab_bar.addTab(title)
         self.tab_bar.setCurrentIndex(index)
         self.stack.setCurrentWidget(page)
-        self._connect_browser(page.browser)
+        return page
+
+    def about(self):
+        page = self._open_tab("About")
         render_about(page.browser)
         self.url_bar.setText("about:version")
-        self.tab_bar.setTabText(index, "About")
 
     def new_tab_page(self):
-        page = TabPage(new_window_callback=self.create_popup_tab)
-        self.stack.addWidget(page)
-        index = self.tab_bar.addTab("New Tab")
-        self.tab_bar.setCurrentIndex(index)
-        self.stack.setCurrentWidget(page)
-        self._connect_browser(page.browser)
+        page = self._open_tab("New Tab")
         render_newtab(page.browser)
-        self.tab_bar.setTabText(index, "New Tab")
         QTimer.singleShot(
             0,
             lambda: (
@@ -119,16 +104,9 @@ class SimpleBrowser(QMainWindow):
         )
 
     def settings(self):
-        page = TabPage(new_window_callback=self.create_popup_tab)
-        self.stack.addWidget(page)
-        index = self.tab_bar.addTab("Settings")
-        self.tab_bar.setCurrentIndex(index)
-        self.stack.setCurrentWidget(page)
-        browser = page.browser
-        self._connect_browser(browser)
-        render_settings(browser, self.current_search_engine)
+        page = self._open_tab("Settings")
+        render_settings(page.browser, self.current_search_engine)
         self.url_bar.setText("about:settings")
-        self.tab_bar.setTabText(index, "Settings")
 
     def setup_tab_bar(self, root):
         row = QWidget()
@@ -168,15 +146,15 @@ class SimpleBrowser(QMainWindow):
             "QPushButton:hover { background: palette(midlight); }"
         )
 
-        self.back_btn = _nav_button("back.svg", "←", "Back")
+        self.back_btn = nav_button("back.svg", "←", "Back")
         self.back_btn.clicked.connect(self.go_back)
         layout.addWidget(self.back_btn)
 
-        self.forward_btn = _nav_button("forward.svg", "→", "Forward")
+        self.forward_btn = nav_button("forward.svg", "→", "Forward")
         self.forward_btn.clicked.connect(self.go_forward)
         layout.addWidget(self.forward_btn)
 
-        self.reload_btn = _nav_button("reload.svg", "⟳", "Reload")
+        self.reload_btn = nav_button("reload.svg", "⟳", "Reload")
         self.reload_btn.clicked.connect(self.reload_or_stop)
         layout.addWidget(self.reload_btn)
 
@@ -255,23 +233,11 @@ class SimpleBrowser(QMainWindow):
         if url is None:
             self.new_tab_page()
             return
-        page = TabPage(new_window_callback=self.create_popup_tab)
+        page = self._open_tab("New Tab")
         page.browser.setUrl(url)
-        self._connect_browser(page.browser)
-
-        self.stack.addWidget(page)
-        index = self.tab_bar.addTab("New Tab")
-        self.tab_bar.setCurrentIndex(index)
-        self.stack.setCurrentWidget(page)
 
     def create_popup_tab(self) -> QWebEnginePage:
-        page = TabPage(new_window_callback=self.create_popup_tab)
-        self._connect_browser(page.browser)
-
-        self.stack.addWidget(page)
-        index = self.tab_bar.addTab("New Tab")
-        self.tab_bar.setCurrentIndex(index)
-        self.stack.setCurrentWidget(page)
+        page = self._open_tab("New Tab")
         new_page = page.browser.page()
         assert new_page is not None
         return new_page
