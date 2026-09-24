@@ -1,7 +1,9 @@
+from urllib.parse import parse_qs, quote, urlsplit
 
 from PyQt6.QtCore import QEvent, QSize, QTimer, QUrl
 from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtWebEngineCore import QWebEnginePage
+from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLineEdit,
@@ -49,7 +51,7 @@ class SimpleBrowser(QMainWindow):
             "google": "https://www.google.com/search?q={}",
             "duckduckgo": "https://duckduckgo.com/?q={}",
         }
-        self.current_search_engine = "google"
+        self.current_search_engine = "duckduckgo"
 
         self.setup_menu()
         self.setup_tab_bar(root)
@@ -310,6 +312,15 @@ class SimpleBrowser(QMainWindow):
                 render_settings(self.sender(), name)
             return
 
+        if url_str.startswith("https://monobrowser.internal/search?"):
+            query = parse_qs(urlsplit(url_str).query).get("q", [""])[0].strip()
+            view = self.sender()
+            if isinstance(view, QWebEngineView):
+                if query:
+                    view.setUrl(self.resolve_address(query))
+                else:
+                    render_newtab(view)
+            return
 
         if self.sender() is self.current_browser():
             self.url_bar.setText(url_str)
@@ -321,6 +332,7 @@ class SimpleBrowser(QMainWindow):
         for i in range(self.stack.count()):
             if self.stack.widget(i).browser is self.sender():
                 self.tab_bar.setTabIcon(i, icon)
+                return
 
     def on_load_started(self):
         if self.sender() is self.current_browser():
@@ -342,6 +354,12 @@ class SimpleBrowser(QMainWindow):
             index = self.tab_bar.currentIndex()
             self.tab_bar.setTabText(index, title or "New Tab")
 
+    def resolve_address(self, text: str) -> QUrl:
+        if " " in text or not is_likely_url(text):
+            return QUrl(
+                self.search_engines[self.current_search_engine].format(quote(text))
+            )
+        return build_url(text)
 
     def navigate_to_url(self):
         browser = self.current_browser()
@@ -364,11 +382,4 @@ class SimpleBrowser(QMainWindow):
             self.settings()
             return
 
-        if " " in text or not is_likely_url(text):
-            url = QUrl(
-                self.search_engines[self.current_search_engine].format(quote(text))
-            )
-        else:
-            url = build_url(text)
-
-        browser.setUrl(url)
+        browser.setUrl(self.resolve_address(text))
