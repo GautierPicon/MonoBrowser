@@ -45,4 +45,4 @@ jobs:
           gh release create "$GITHUB_REF_NAME" \
             "dist/MonoBrowser-${VERSION}-macOS-arm64.zip" \
             --title "MonoBrowser $VERSION" \
-            --notes-file "release-notes/${VERSION}.md"
+            --notes-file "release/${VERSION}.md"
