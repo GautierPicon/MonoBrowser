@@ -97,9 +97,8 @@ class SimpleBrowser(QMainWindow):
         QTimer.singleShot(
             0,
             lambda: (
-                self.url_bar.setText("about:newtab"),
+                self.url_bar.clear(),
                 self.url_bar.setFocus(),
-                self.url_bar.selectAll(),
             ),
         )
 
@@ -159,6 +158,7 @@ class SimpleBrowser(QMainWindow):
         layout.addWidget(self.reload_btn)
 
         self.url_bar = QLineEdit()
+        self.url_bar.setPlaceholderText("Search or enter address")
         self.url_bar.returnPressed.connect(self.navigate_to_url)
         self.url_bar.installEventFilter(self)
         layout.addWidget(self.url_bar, 1)
@@ -307,7 +307,11 @@ class SimpleBrowser(QMainWindow):
             self.stack.setCurrentIndex(index)
         browser = self.current_browser()
         if browser:
-            self.url_bar.setText(browser.url().toString())
+            url = browser.url().toString()
+            if url == "about:newtab":
+                self.url_bar.clear()
+            else:
+                self.url_bar.setText(url)
         self.progress.hide()
         self._set_stop_mode(False)
         self.update_nav_buttons()
@@ -332,7 +336,10 @@ class SimpleBrowser(QMainWindow):
             return
 
         if self.sender() is self.current_browser():
-            self.url_bar.setText(url_str)
+            if url_str == "about:newtab":
+                self.url_bar.clear()
+            else:
+                self.url_bar.setText(url_str)
             if self.url_bar.hasFocus():
                 self.url_bar.selectAll()
             self.update_nav_buttons()
