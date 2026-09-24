@@ -1,5 +1,5 @@
-from PyQt6.QtWidgets import QVBoxLayout, QWidget
 from PyQt6.QtWebEngineWidgets import QWebEngineView
+from PyQt6.QtWidgets import QVBoxLayout, QWidget
 
 
 class TabPage(QWidget):

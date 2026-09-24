@@ -13,9 +13,9 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from about_pages import render_about, render_newtab, render_settings
-from tab_page import TabPage
-from utils import build_url, is_likely_url
+from monobrowser.about_pages import render_about, render_newtab, render_settings
+from monobrowser.tab_page import TabPage
+from monobrowser.utils import build_url, is_likely_url
 
 
 class SimpleBrowser(QMainWindow):
@@ -77,11 +77,14 @@ class SimpleBrowser(QMainWindow):
         page.browser.titleChanged.connect(self.on_title_changed)
         render_newtab(page.browser)
         self.tab_bar.setTabText(index, "New Tab")
-        QTimer.singleShot(0, lambda: (
-            self.url_bar.setText("about:newtab"),
-            self.url_bar.setFocus(),
-            self.url_bar.selectAll(),
-        ))
+        QTimer.singleShot(
+            0,
+            lambda: (
+                self.url_bar.setText("about:newtab"),
+                self.url_bar.setFocus(),
+                self.url_bar.selectAll(),
+            ),
+        )
 
     def settings(self):
         page = TabPage()
@@ -207,7 +210,9 @@ class SimpleBrowser(QMainWindow):
             return
 
         if " " in text or not is_likely_url(text):
-            url = QUrl(self.search_engines[self.current_search_engine].format(quote(text)))
+            url = QUrl(
+                self.search_engines[self.current_search_engine].format(quote(text))
+            )
         else:
             url = build_url(text)
 

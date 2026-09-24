@@ -20,7 +20,7 @@ rm -rf src/assets/icon.iconset
 uv run pyinstaller \
     --windowed \
     --name "MonoBrowser" \
-    --paths src/monobrowser \
+    --paths src \
     --icon src/assets/icon.icns \
     --add-data "src/assets/icon.icns:." \
     --add-data "src/assets/icon.png:." \

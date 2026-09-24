@@ -3,8 +3,8 @@ import sys
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QApplication
 
-from browser import SimpleBrowser
-from utils import _is_bundled, get_version, ICON_PATH
+from monobrowser.browser import SimpleBrowser
+from monobrowser.utils import ICON_PATH, _is_bundled, get_version
 
 
 def main():
