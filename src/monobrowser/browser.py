@@ -1,7 +1,7 @@
 from urllib.parse import parse_qs, quote, urlsplit
 
-from PyQt6.QtCore import QEvent, QSize, QTimer, QUrl
-from PyQt6.QtGui import QAction, QIcon
+from PyQt6.QtCore import QEvent, QTimer, QUrl
+from PyQt6.QtGui import QAction, QIcon, QKeySequence, QShortcut
 from PyQt6.QtWebEngineCore import QWebEnginePage
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWidgets import (
@@ -57,6 +57,7 @@ class SimpleBrowser(QMainWindow):
         self.setup_url_bar(root)
         self.setup_progress(root)
         self.setup_content(root)
+        self.setup_shortcuts()
 
         self.add_tab()
         self.update_nav_buttons()
@@ -201,6 +202,48 @@ class SimpleBrowser(QMainWindow):
     def setup_content(self, root):
         self.stack = QStackedWidget()
         root.addWidget(self.stack, 1)
+
+    def setup_shortcuts(self):
+        bindings = [
+            ("Ctrl+T", self.add_tab),
+            ("Ctrl+L", self.focus_url_bar),
+            ("Ctrl+W", self.close_current_tab),
+            ("Ctrl+R", self.reload_current),
+            ("Escape", self.stop_current),
+        ]
+        for sequence, slot in bindings:
+            QShortcut(QKeySequence(sequence), self).activated.connect(slot)
+        for i in range(8):
+            shortcut = QShortcut(QKeySequence(f"Ctrl+{i + 1}"), self)
+            shortcut.activated.connect(lambda index=i: self.go_to_tab(index))
+        last_tab = QShortcut(QKeySequence("Ctrl+9"), self)
+        last_tab.activated.connect(self.go_to_last_tab)
+
+    def focus_url_bar(self):
+        self.url_bar.setFocus()
+        self.url_bar.selectAll()
+
+    def close_current_tab(self):
+        self.close_tab(self.tab_bar.currentIndex())
+
+    def reload_current(self):
+        browser = self.current_browser()
+        if browser:
+            browser.reload()
+
+    def stop_current(self):
+        browser = self.current_browser()
+        if browser:
+            browser.stop()
+
+    def go_to_tab(self, index: int):
+        if 0 <= index < self.tab_bar.count():
+            self.tab_bar.setCurrentIndex(index)
+
+    def go_to_last_tab(self):
+        count = self.tab_bar.count()
+        if count > 0:
+            self.tab_bar.setCurrentIndex(count - 1)
 
     def add_tab(self, url=None):
         if url is None:
