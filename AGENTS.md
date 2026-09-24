@@ -20,8 +20,7 @@ Tiny PyQt6 + QtWebEngine browser. No CI.
 ## Code map
 
 - Entrypoint `src/monobrowser/main.py` (`-m monobrowser.main`) → `SimpleBrowser` in `src/monobrowser/browser.py` (tabs via `QTabBar` + `QStackedWidget`, URL/search dispatch in `navigate_to_url`).
-- `src/monobrowser/tab_page.py`: `TabPage` = thin `QWebEngineView` wrapper.
-- `src/monobrowser/utils.py`: URL heuristics (`is_likely_url`, `build_url`), version from `pyproject.toml`, bundled-vs-dev asset paths.
+- `src/monobrowser/tab_page.py`: `TabPage` = thin `QWebEngineView` wrapper. Every `TabPage(...)` must pass `new_window_callback=self.create_popup_tab`, otherwise `target=_blank` links from that tab die silently (`BrowserPage.createWindow` needs the factory).- `src/monobrowser/utils.py`: URL heuristics (`is_likely_url`, `build_url`), version from `pyproject.toml`, bundled-vs-dev asset paths.
 - `src/monobrowser/about_pages.py` + `src/monobrowser/about-pages/*.html`: `about:version`, `about:newtab`, `about:settings` rendered via `setHtml`; search-engine switch intercepts `https://monobrowser.internal/set-search?`.
 
 ## Gotchas

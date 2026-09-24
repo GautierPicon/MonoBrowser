@@ -2,6 +2,7 @@ from urllib.parse import quote
 
 from PyQt6.QtCore import QEvent, QTimer, QUrl
 from PyQt6.QtGui import QAction
+from PyQt6.QtWebEngineCore import QWebEnginePage
 from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLineEdit,
@@ -57,7 +58,7 @@ class SimpleBrowser(QMainWindow):
         file_menu.addAction(about_action)
 
     def about(self):
-        page = TabPage()
+        page = TabPage(new_window_callback=self.create_popup_tab)
         self.stack.addWidget(page)
         index = self.tab_bar.addTab("About")
         self.tab_bar.setCurrentIndex(index)
@@ -68,7 +69,7 @@ class SimpleBrowser(QMainWindow):
         self.tab_bar.setTabText(index, "About")
 
     def new_tab_page(self):
-        page = TabPage()
+        page = TabPage(new_window_callback=self.create_popup_tab)
         self.stack.addWidget(page)
         index = self.tab_bar.addTab("New Tab")
         self.tab_bar.setCurrentIndex(index)
@@ -87,7 +88,7 @@ class SimpleBrowser(QMainWindow):
         )
 
     def settings(self):
-        page = TabPage()
+        page = TabPage(new_window_callback=self.create_popup_tab)
         self.stack.addWidget(page)
         index = self.tab_bar.addTab("Settings")
         self.tab_bar.setCurrentIndex(index)
@@ -139,7 +140,7 @@ class SimpleBrowser(QMainWindow):
         if url is None:
             self.new_tab_page()
             return
-        page = TabPage()
+        page = TabPage(new_window_callback=self.create_popup_tab)
         page.browser.setUrl(url)
         page.browser.urlChanged.connect(self.on_url_changed)
         page.browser.titleChanged.connect(self.on_title_changed)
@@ -148,6 +149,20 @@ class SimpleBrowser(QMainWindow):
         index = self.tab_bar.addTab("New Tab")
         self.tab_bar.setCurrentIndex(index)
         self.stack.setCurrentWidget(page)
+
+    def create_popup_tab(self) -> QWebEnginePage:
+        """Create a new tab for target=_blank / window.open requests."""
+        page = TabPage(new_window_callback=self.create_popup_tab)
+        page.browser.urlChanged.connect(self.on_url_changed)
+        page.browser.titleChanged.connect(self.on_title_changed)
+
+        self.stack.addWidget(page)
+        index = self.tab_bar.addTab("New Tab")
+        self.tab_bar.setCurrentIndex(index)
+        self.stack.setCurrentWidget(page)
+        new_page = page.browser.page()
+        assert new_page is not None  # TabPage always installs a BrowserPage
+        return new_page
 
     def current_browser(self):
         page = self.stack.currentWidget()
