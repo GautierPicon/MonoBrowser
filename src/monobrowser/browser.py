@@ -1,7 +1,7 @@
 from urllib.parse import quote
 
-from PyQt6.QtCore import QEvent, QTimer, QUrl
-from PyQt6.QtGui import QAction
+from PyQt6.QtCore import QEvent, QSize, QTimer, QUrl
+from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtWebEngineCore import QWebEnginePage
 from PyQt6.QtWidgets import (
     QHBoxLayout,
@@ -16,7 +16,21 @@ from PyQt6.QtWidgets import (
 
 from monobrowser.about_pages import render_about, render_newtab, render_settings
 from monobrowser.tab_page import TabPage
-from monobrowser.utils import build_url, is_likely_url
+from monobrowser.utils import _assets_path, build_url, is_likely_url
+
+
+def _nav_button(icon_name: str, fallback_text: str, tooltip: str) -> QPushButton:
+    """Navigation button with SVG icon, falling back to a text symbol."""
+    button = QPushButton()
+    icon_path = _assets_path(icon_name)
+    if icon_path.exists():
+        button.setIcon(QIcon(str(icon_path)))
+        button.setIconSize(QSize(18, 18))
+    else:
+        button.setText(fallback_text)
+    button.setToolTip(tooltip)
+    button.setFixedWidth(30)
+    return button
 
 
 class SimpleBrowser(QMainWindow):
@@ -43,6 +57,7 @@ class SimpleBrowser(QMainWindow):
         self.setup_content(root)
 
         self.add_tab()
+        self.update_nav_buttons()
 
     def setup_menu(self):
         file_menu = self.menuBar().addMenu("File")
@@ -122,10 +137,29 @@ class SimpleBrowser(QMainWindow):
         root.addWidget(row)
 
     def setup_url_bar(self, root):
+        row = QWidget()
+        layout = QHBoxLayout(row)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        self.back_btn = _nav_button("back.svg", "←", "Back")
+        self.back_btn.clicked.connect(self.go_back)
+        layout.addWidget(self.back_btn)
+
+        self.forward_btn = _nav_button("forward.svg", "→", "Forward")
+        self.forward_btn.clicked.connect(self.go_forward)
+        layout.addWidget(self.forward_btn)
+
+        self.reload_btn = _nav_button("reload.svg", "⟳", "Reload")
+        self.reload_btn.clicked.connect(self.reload_page)
+        layout.addWidget(self.reload_btn)
+
         self.url_bar = QLineEdit()
         self.url_bar.returnPressed.connect(self.navigate_to_url)
         self.url_bar.installEventFilter(self)
-        root.addWidget(self.url_bar)
+        layout.addWidget(self.url_bar, 1)
+
+        root.addWidget(row)
 
     def eventFilter(self, obj, event):
         if obj is self.url_bar and event.type() == QEvent.Type.MouseButtonPress:
@@ -170,6 +204,33 @@ class SimpleBrowser(QMainWindow):
             return page.browser
         return None
 
+    def go_back(self):
+        browser = self.current_browser()
+        if browser:
+            browser.back()
+
+    def go_forward(self):
+        browser = self.current_browser()
+        if browser:
+            browser.forward()
+
+    def reload_page(self):
+        browser = self.current_browser()
+        if browser:
+            browser.reload()
+
+    def update_nav_buttons(self):
+        browser = self.current_browser()
+        if browser:
+            history = browser.history()
+            self.back_btn.setEnabled(history.canGoBack())
+            self.forward_btn.setEnabled(history.canGoForward())
+            self.reload_btn.setEnabled(True)
+        else:
+            self.back_btn.setEnabled(False)
+            self.forward_btn.setEnabled(False)
+            self.reload_btn.setEnabled(False)
+
     def close_tab(self, index):
         if self.tab_bar.count() <= 1:
             return
@@ -183,6 +244,7 @@ class SimpleBrowser(QMainWindow):
         browser = self.current_browser()
         if browser:
             self.url_bar.setText(browser.url().toString())
+        self.update_nav_buttons()
 
     def on_url_changed(self, qurl):
         url_str = qurl.toString()
@@ -197,6 +259,7 @@ class SimpleBrowser(QMainWindow):
             self.url_bar.setText(url_str)
             if self.url_bar.hasFocus():
                 self.url_bar.selectAll()
+            self.update_nav_buttons()
 
     def on_title_changed(self, title):
         if self.sender() is self.current_browser():
