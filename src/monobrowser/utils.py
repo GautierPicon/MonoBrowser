@@ -6,25 +6,25 @@ from pathlib import Path
 from PyQt6.QtCore import QUrl
 
 
-def _is_bundled():
+def _is_bundled() -> bool:
     return getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS")
 
 
-def _resource_path(name):
+def _resource_path(name: str) -> Path:
     if _is_bundled():
-        return Path(sys._MEIPASS) / name
+        return Path(getattr(sys, "_MEIPASS")) / name
     return Path(__file__).parent / name
 
 
-def _assets_path(name):
+def _assets_path(name: str) -> Path:
     if _is_bundled():
-        return Path(sys._MEIPASS) / name
+        return Path(getattr(sys, "_MEIPASS")) / name
     return Path(__file__).parent.parent / "assets" / name
 
 
-def _project_root():
+def _project_root() -> Path:
     if _is_bundled():
-        return Path(sys._MEIPASS)
+        return Path(getattr(sys, "_MEIPASS"))
     return Path(__file__).parent.parent.parent
 
 
@@ -37,17 +37,17 @@ KNOWN_SCHEMES = ("http://", "https://", "ftp://", "file://", "about:", "chrome:/
 URL_SCHEMES = ("http://", "https://", "ftp://", "file://", "about:")
 
 
-def is_likely_url(text):
-    return (
+def is_likely_url(text: str) -> bool:
+    return bool(
         text.lower().startswith(KNOWN_SCHEMES)
-        or re.search(r'\.[a-zA-Z]{2,}(:\d+)?(/|$)', text)
-        or re.match(r'^[\w-]+\.[\w-]+', text)
+        or re.search(r"\.[a-zA-Z]{2,}(:\d+)?(/|$)", text)
+        or re.match(r"^[\w-]+\.[\w-]+", text)
         or text.startswith(("localhost", "127.", "10.", "192.168."))
-        or re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}', text)
+        or re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", text)
     )
 
 
-def get_version():
+def get_version() -> str:
     try:
         data = tomllib.loads(TOML_PATH.read_text())
         return data["project"]["version"]
@@ -55,7 +55,7 @@ def get_version():
         return "0.0.0"
 
 
-def build_url(text):
+def build_url(text: str) -> QUrl:
     if not text.lower().startswith(URL_SCHEMES):
         text = "https://" + text
     return QUrl(text)
