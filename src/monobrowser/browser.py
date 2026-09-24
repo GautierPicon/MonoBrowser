@@ -83,6 +83,12 @@ class SimpleBrowser(QMainWindow):
         view.loadProgress.connect(self.on_load_progress)
         view.loadFinished.connect(self.on_load_finished)
 
+    def _tab_index_of(self, view) -> int:
+        for i in range(self.stack.count()):
+            if self.stack.widget(i).browser is view:
+                return i
+        return -1
+
     def about(self):
         page = TabPage(new_window_callback=self.create_popup_tab)
         self.stack.addWidget(page)
@@ -297,13 +303,8 @@ class SimpleBrowser(QMainWindow):
 
     def _set_stop_mode(self, loading: bool):
         if loading:
-            stop_path = _assets_path("close.svg")
-            if stop_path.exists():
-                self.reload_btn.setIcon(QIcon(str(stop_path)))
-                self.reload_btn.setText("")
-            else:
-                self.reload_btn.setIcon(QIcon())
-                self.reload_btn.setText("✕")
+            self.reload_btn.setIcon(QIcon())
+            self.reload_btn.setText("✕")
             self.reload_btn.setToolTip("Stop")
         else:
             reload_path = _assets_path("reload.svg")
@@ -333,6 +334,7 @@ class SimpleBrowser(QMainWindow):
         page = self.stack.widget(index)
         self.stack.removeWidget(page)
         self.tab_bar.removeTab(index)
+        page.deleteLater()
 
     def on_tab_changed(self, index):
         if 0 <= index < self.stack.count():
@@ -347,7 +349,7 @@ class SimpleBrowser(QMainWindow):
     def on_url_changed(self, qurl):
         url_str = qurl.toString()
         if url_str.startswith("https://monobrowser.internal/set-search?"):
-            name = url_str.split("?")[1]
+            _, _, name = url_str.partition("?")
             if name in self.search_engines:
                 self.current_search_engine = name
                 render_settings(self.sender(), name)
@@ -370,12 +372,14 @@ class SimpleBrowser(QMainWindow):
             self.update_nav_buttons()
 
     def on_icon_changed(self, icon: QIcon):
-        for i in range(self.stack.count()):
-            if self.stack.widget(i).browser is self.sender():
-                self.tab_bar.setTabIcon(i, icon)
-                return
+        index = self._tab_index_of(self.sender())
+        if index >= 0:
+            self.tab_bar.setTabIcon(index, icon)
 
     def on_load_started(self):
+        index = self._tab_index_of(self.sender())
+        if index >= 0:
+            self.tab_bar.setTabIcon(index, QIcon())
         if self.sender() is self.current_browser():
             self.progress.setValue(0)
             self.progress.show()
@@ -391,8 +395,8 @@ class SimpleBrowser(QMainWindow):
             self._set_stop_mode(False)
 
     def on_title_changed(self, title):
-        if self.sender() is self.current_browser():
-            index = self.tab_bar.currentIndex()
+        index = self._tab_index_of(self.sender())
+        if index >= 0:
             self.tab_bar.setTabText(index, title or "New Tab")
 
     def resolve_address(self, text: str) -> QUrl:

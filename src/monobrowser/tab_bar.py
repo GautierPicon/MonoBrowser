@@ -1,4 +1,4 @@
-from PyQt6.QtCore import QRect, QSize, Qt
+from PyQt6.QtCore import QEvent, QRect, QSize, Qt
 from PyQt6.QtGui import (
     QColor,
     QFontMetrics,
@@ -20,11 +20,6 @@ BORDER = QColor("#DADCE0")
 CLOSE_HOVER_BG = QColor("#DADCE0")
 CLOSE_GLYPH = QColor("#5F6368")
 
-NEW_TAB_HOVER_BG = QColor("#E0E3E7")
-NEW_TAB_GLYPH = QColor("#3C4043")
-
-DIVIDER = QColor("#D3D6DA")
-
 
 TAB_HEIGHT = 36
 
@@ -39,8 +34,6 @@ H_PAD = 10
 CLOSE_DIAMETER = 22
 
 TAB_RADIUS = 9
-
-NEW_TAB_SIZE = 34
 
 
 class ChromeTabBar(QTabBar):
@@ -62,8 +55,6 @@ class ChromeTabBar(QTabBar):
         self._hover_close = False
 
         self._close_rects: dict[int, QRect] = {}
-
-        self._new_tab_rect = QRect()
 
         font = self.font()
         font.setPointSize(10)
@@ -110,6 +101,8 @@ class ChromeTabBar(QTabBar):
             TABSTRIP_BG,
         )
 
+        self._close_rects.clear()
+
         current = self.currentIndex()
 
         for i in range(self.count()):
@@ -126,8 +119,6 @@ class ChromeTabBar(QTabBar):
                 current,
                 active=True,
             )
-
-        self._paint_new_tab_button(painter)
 
         painter.end()
 
@@ -348,79 +339,6 @@ class ChromeTabBar(QTabBar):
 
         painter.restore()
 
-    def _new_tab_geometry(self) -> QRect:
-
-        if self.count() == 0:
-            return QRect(
-                8,
-                1,
-                NEW_TAB_SIZE,
-                NEW_TAB_SIZE,
-            )
-
-        last = self.tabRect(self.count() - 1)
-
-        x = last.right() + 7
-
-        return QRect(
-            x,
-            1,
-            NEW_TAB_SIZE,
-            NEW_TAB_SIZE,
-        )
-
-    def _paint_new_tab_button(
-        self,
-        painter: QPainter,
-    ) -> None:
-
-        rect = self._new_tab_geometry()
-
-        self._new_tab_rect = rect
-
-        if not self.rect().intersects(rect):
-            return
-
-        hovered = self._hover_tab == -2
-
-        if hovered:
-            painter.setPen(Qt.PenStyle.NoPen)
-
-            painter.setBrush(NEW_TAB_HOVER_BG)
-
-            painter.drawRoundedRect(
-                rect,
-                8,
-                8,
-            )
-
-        center = rect.center()
-
-        painter.setPen(
-            QPen(
-                NEW_TAB_GLYPH,
-                1.8,
-                Qt.PenStyle.SolidLine,
-                Qt.PenCapStyle.RoundCap,
-            )
-        )
-
-        size = 7
-
-        painter.drawLine(
-            center.x() - size,
-            center.y(),
-            center.x() + size,
-            center.y(),
-        )
-
-        painter.drawLine(
-            center.x(),
-            center.y() - size,
-            center.x(),
-            center.y() + size,
-        )
-
     def mousePressEvent(
         self,
         event: QMouseEvent | None,
@@ -430,26 +348,6 @@ class ChromeTabBar(QTabBar):
             return
 
         pos = event.pos()
-
-        if event.button() == Qt.MouseButton.LeftButton and self._new_tab_rect.contains(
-            pos
-        ):
-            self.tabBarClicked.emit(-1)
-
-            parent = self.parent()
-
-            if parent is not None:
-                new_tab = getattr(
-                    parent,
-                    "new_tab",
-                    None,
-                )
-
-                if callable(new_tab):
-                    new_tab()
-
-            event.accept()
-            return
 
         if event.button() == Qt.MouseButton.LeftButton:
             index = self.tabAt(pos)
@@ -489,22 +387,15 @@ class ChromeTabBar(QTabBar):
 
         index = self.tabAt(pos)
 
-        if self._new_tab_rect.contains(pos):
-            new_state = (
-                -2,
-                False,
-            )
+        close_hover = index >= 0 and self._close_rects.get(
+            index,
+            QRect(),
+        ).contains(pos)
 
-        else:
-            close_hover = index >= 0 and self._close_rects.get(
-                index,
-                QRect(),
-            ).contains(pos)
-
-            new_state = (
-                index,
-                close_hover,
-            )
+        new_state = (
+            index,
+            close_hover,
+        )
 
         if new_state != (
             self._hover_tab,
@@ -522,7 +413,7 @@ class ChromeTabBar(QTabBar):
 
         super().mouseMoveEvent(event)
 
-    def leaveEvent(self, event) -> None:
+    def leaveEvent(self, event: QEvent | None) -> None:
 
         self._hover_tab = -1
         self._hover_close = False
@@ -532,29 +423,3 @@ class ChromeTabBar(QTabBar):
         self.update()
 
         super().leaveEvent(event)
-
-    def mouseDoubleClickEvent(
-        self,
-        event: QMouseEvent | None,
-    ) -> None:
-
-        if event is None:
-            return
-
-        if event.button() == Qt.MouseButton.LeftButton and self.tabAt(event.pos()) < 0:
-            parent = self.parent()
-
-            if parent is not None:
-                new_tab = getattr(
-                    parent,
-                    "new_tab",
-                    None,
-                )
-
-                if callable(new_tab):
-                    new_tab()
-
-            event.accept()
-            return
-
-        super().mouseDoubleClickEvent(event)
