@@ -4,6 +4,13 @@
 
 Minimal browser built with **PyQt6** + **QtWebEngine**.
 
+> macOS only — Windows and Linux are neither tested nor supported.
+
+## Requirements
+
+- macOS on Apple Silicon
+- For development: `uv` and a display
+
 ## Development
 
 ```bash
