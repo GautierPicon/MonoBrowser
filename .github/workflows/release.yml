@@ -42,39 +42,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          cat > "$RUNNER_TEMP/notes.md" <<'EOF'
-          ## What's new in 1.1.0
-
-          - Chrome-like custom tab bar (slanted tabs, hover states, custom close buttons)
-          - Loading progress bar, stop button and per-tab favicons
-          - Searchable new tab page (URLs open directly, the rest searches via DuckDuckGo)
-          - About pages in light mode, DuckDuckGo is now the default engine
-
-          ## Features
-
-          - Tabbed browsing (drag-reorderable tabs, page titles, favicons)
-          - Smart URL bar: URLs open directly, anything else goes to the search engine
-          - Back / forward / reload navigation buttons with custom icons
-          - `target="_blank"` links and `window.open()` popups open in a new tab
-          - Search engine choice (Google / DuckDuckGo) in `about:settings`
-          - Built-in pages: `about:version`, `about:newtab`, `about:settings`
-          - Standalone `.app` bundle via PyInstaller
-
-          ## Installation
-
-          1. Download the `MonoBrowser-*-macOS-arm64.zip` attached below
-          2. Unzip and drag `MonoBrowser.app` to `/Applications`
-          3. Launch it
-
-          > [!WARNING]
-          > The app is not code-signed (no Apple Developer account yet). On first launch macOS may refuse to open it ("developer cannot be verified"). Workaround: right-click → Open, or run `xattr -cr /Applications/MonoBrowser.app`.
-
-          ## Requirements
-
-          - macOS on Apple Silicon
-          - No Python installation needed, everything is bundled
-          EOF
           gh release create "$GITHUB_REF_NAME" \
             "dist/MonoBrowser-${VERSION}-macOS-arm64.zip" \
             --title "MonoBrowser $VERSION" \
-            --notes-file "$RUNNER_TEMP/notes.md"
+            --notes-file "release-notes/${VERSION}.md"
