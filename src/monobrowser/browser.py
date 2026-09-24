@@ -128,8 +128,13 @@ class SimpleBrowser(QMainWindow):
         self.tab_bar.currentChanged.connect(self.on_tab_changed)
         layout.addWidget(self.tab_bar)
 
-        new_tab_btn = QPushButton("+")
-        new_tab_btn.setFixedWidth(30)
+        close_icon = _assets_path("close.svg")
+        if close_icon.exists():
+            self.tab_bar.setStyleSheet(
+                f"QTabBar::close-button {{ image: url({close_icon.as_uri()}); }}"
+            )
+
+        new_tab_btn = _nav_button("plus.svg", "+", "New Tab")
         new_tab_btn.clicked.connect(lambda: self.add_tab())
         layout.addWidget(new_tab_btn)
 
