@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLineEdit,
     QMainWindow,
+    QProgressBar,
     QPushButton,
     QStackedWidget,
     QVBoxLayout,
@@ -53,6 +54,7 @@ class SimpleBrowser(QMainWindow):
         self.setup_menu()
         self.setup_tab_bar(root)
         self.setup_url_bar(root)
+        self.setup_progress(root)
         self.setup_content(root)
 
         self.add_tab()
@@ -71,13 +73,21 @@ class SimpleBrowser(QMainWindow):
         about_action.triggered.connect(self.about)
         file_menu.addAction(about_action)
 
+    def _connect_browser(self, view):
+        view.urlChanged.connect(self.on_url_changed)
+        view.titleChanged.connect(self.on_title_changed)
+        view.iconChanged.connect(self.on_icon_changed)
+        view.loadStarted.connect(self.on_load_started)
+        view.loadProgress.connect(self.on_load_progress)
+        view.loadFinished.connect(self.on_load_finished)
+
     def about(self):
         page = TabPage(new_window_callback=self.create_popup_tab)
         self.stack.addWidget(page)
         index = self.tab_bar.addTab("About")
         self.tab_bar.setCurrentIndex(index)
         self.stack.setCurrentWidget(page)
-        page.browser.urlChanged.connect(self.on_url_changed)
+        self._connect_browser(page.browser)
         render_about(page.browser)
         self.url_bar.setText("about:version")
         self.tab_bar.setTabText(index, "About")
@@ -88,8 +98,7 @@ class SimpleBrowser(QMainWindow):
         index = self.tab_bar.addTab("New Tab")
         self.tab_bar.setCurrentIndex(index)
         self.stack.setCurrentWidget(page)
-        page.browser.urlChanged.connect(self.on_url_changed)
-        page.browser.titleChanged.connect(self.on_title_changed)
+        self._connect_browser(page.browser)
         render_newtab(page.browser)
         self.tab_bar.setTabText(index, "New Tab")
         QTimer.singleShot(
@@ -108,8 +117,7 @@ class SimpleBrowser(QMainWindow):
         self.tab_bar.setCurrentIndex(index)
         self.stack.setCurrentWidget(page)
         browser = page.browser
-        browser.urlChanged.connect(self.on_url_changed)
-        browser.titleChanged.connect(self.on_title_changed)
+        self._connect_browser(browser)
         render_settings(browser, self.current_search_engine)
         self.url_bar.setText("about:settings")
         self.tab_bar.setTabText(index, "Settings")
@@ -142,8 +150,15 @@ class SimpleBrowser(QMainWindow):
     def setup_url_bar(self, root):
         row = QWidget()
         layout = QHBoxLayout(row)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
+        layout.setContentsMargins(6, 4, 6, 4)
+        layout.setSpacing(2)
+        row.setStyleSheet(
+            "QLineEdit { border: 1px solid palette(mid); border-radius: 8px;"
+            " padding: 4px 10px; }"
+            "QLineEdit:focus { border-color: #5b8def; }"
+            "QPushButton { border: none; border-radius: 6px; }"
+            "QPushButton:hover { background: palette(midlight); }"
+        )
 
         self.back_btn = _nav_button("back.svg", "←", "Back")
         self.back_btn.clicked.connect(self.go_back)
@@ -154,7 +169,7 @@ class SimpleBrowser(QMainWindow):
         layout.addWidget(self.forward_btn)
 
         self.reload_btn = _nav_button("reload.svg", "⟳", "Reload")
-        self.reload_btn.clicked.connect(self.reload_page)
+        self.reload_btn.clicked.connect(self.reload_or_stop)
         layout.addWidget(self.reload_btn)
 
         self.url_bar = QLineEdit()
@@ -169,6 +184,19 @@ class SimpleBrowser(QMainWindow):
             QTimer.singleShot(0, self.url_bar.selectAll)
         return super().eventFilter(obj, event)
 
+    def setup_progress(self, root):
+        self.progress = QProgressBar()
+        self.progress.setRange(0, 100)
+        self.progress.setValue(0)
+        self.progress.setTextVisible(False)
+        self.progress.setFixedHeight(3)
+        self.progress.setStyleSheet(
+            "QProgressBar { border: none; background: transparent; }"
+            "QProgressBar::chunk { background: #5b8def; }"
+        )
+        self.progress.hide()
+        root.addWidget(self.progress)
+
     def setup_content(self, root):
         self.stack = QStackedWidget()
         root.addWidget(self.stack, 1)
@@ -179,8 +207,7 @@ class SimpleBrowser(QMainWindow):
             return
         page = TabPage(new_window_callback=self.create_popup_tab)
         page.browser.setUrl(url)
-        page.browser.urlChanged.connect(self.on_url_changed)
-        page.browser.titleChanged.connect(self.on_title_changed)
+        self._connect_browser(page.browser)
 
         self.stack.addWidget(page)
         index = self.tab_bar.addTab("New Tab")
@@ -190,15 +217,14 @@ class SimpleBrowser(QMainWindow):
     def create_popup_tab(self) -> QWebEnginePage:
         """Create a new tab for target=_blank / window.open requests."""
         page = TabPage(new_window_callback=self.create_popup_tab)
-        page.browser.urlChanged.connect(self.on_url_changed)
-        page.browser.titleChanged.connect(self.on_title_changed)
+        self._connect_browser(page.browser)
 
         self.stack.addWidget(page)
         index = self.tab_bar.addTab("New Tab")
         self.tab_bar.setCurrentIndex(index)
         self.stack.setCurrentWidget(page)
         new_page = page.browser.page()
-        assert new_page is not None  # TabPage always installs a BrowserPage
+        assert new_page is not None
         return new_page
 
     def current_browser(self):
@@ -217,10 +243,34 @@ class SimpleBrowser(QMainWindow):
         if browser:
             browser.forward()
 
-    def reload_page(self):
+    def reload_or_stop(self):
         browser = self.current_browser()
-        if browser:
+        if not browser:
+            return
+        if self.progress.isVisible():
+            browser.stop()
+        else:
             browser.reload()
+
+    def _set_stop_mode(self, loading: bool):
+        if loading:
+            stop_path = _assets_path("close.svg")
+            if stop_path.exists():
+                self.reload_btn.setIcon(QIcon(str(stop_path)))
+                self.reload_btn.setText("")
+            else:
+                self.reload_btn.setIcon(QIcon())
+                self.reload_btn.setText("✕")
+            self.reload_btn.setToolTip("Stop")
+        else:
+            reload_path = _assets_path("reload.svg")
+            if reload_path.exists():
+                self.reload_btn.setIcon(QIcon(str(reload_path)))
+                self.reload_btn.setText("")
+            else:
+                self.reload_btn.setIcon(QIcon())
+                self.reload_btn.setText("⟳")
+            self.reload_btn.setToolTip("Reload")
 
     def update_nav_buttons(self):
         browser = self.current_browser()
@@ -247,6 +297,8 @@ class SimpleBrowser(QMainWindow):
         browser = self.current_browser()
         if browser:
             self.url_bar.setText(browser.url().toString())
+        self.progress.hide()
+        self._set_stop_mode(False)
         self.update_nav_buttons()
 
     def on_url_changed(self, qurl):
@@ -258,16 +310,38 @@ class SimpleBrowser(QMainWindow):
                 render_settings(self.sender(), name)
             return
 
+
         if self.sender() is self.current_browser():
             self.url_bar.setText(url_str)
             if self.url_bar.hasFocus():
                 self.url_bar.selectAll()
             self.update_nav_buttons()
 
+    def on_icon_changed(self, icon: QIcon):
+        for i in range(self.stack.count()):
+            if self.stack.widget(i).browser is self.sender():
+                self.tab_bar.setTabIcon(i, icon)
+
+    def on_load_started(self):
+        if self.sender() is self.current_browser():
+            self.progress.setValue(0)
+            self.progress.show()
+            self._set_stop_mode(True)
+
+    def on_load_progress(self, value: int):
+        if self.sender() is self.current_browser():
+            self.progress.setValue(value)
+
+    def on_load_finished(self, ok: bool):
+        if self.sender() is self.current_browser():
+            self.progress.hide()
+            self._set_stop_mode(False)
+
     def on_title_changed(self, title):
         if self.sender() is self.current_browser():
             index = self.tab_bar.currentIndex()
             self.tab_bar.setTabText(index, title or "New Tab")
+
 
     def navigate_to_url(self):
         browser = self.current_browser()
