@@ -48,7 +48,7 @@ def test_build_url_keeps_scheme() -> None:
 
 
 def test_get_version_matches_pyproject() -> None:
-    assert get_version() == "0.1.0"
+    assert get_version() == "1.0.0"
 
 
 def test_get_version_fallback(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
