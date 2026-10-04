@@ -2,7 +2,7 @@
 
 <img src="src/assets/icon.png" alt="MonoBrowser logo" width="64" height="64">
 
-Minimal browser built with **PyQt6** + **QtWebEngine**.
+Minimal browser built with **PyQt6** + **Qt Quick/QML** + **QtWebEngine**.
 
 > macOS only — Windows and Linux are neither tested nor supported.
 
