@@ -11,27 +11,47 @@ def _is_bundled() -> bool:
     return getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS")
 
 
+def _bundle_roots() -> list[Path]:
+    meipass = Path(getattr(sys, "_MEIPASS", "."))
+    return [
+        meipass,
+        meipass / ".." / "Resources",
+        meipass / ".." / "Frameworks",
+    ]
+
+
+def _bundled_file(name: Path | str) -> Path:
+    for root in _bundle_roots():
+        candidate = (root / name).resolve()
+        if candidate.exists():
+            return candidate
+    return (_bundle_roots()[0] / name).resolve()
+
+
 def _resource_path(name: str) -> Path:
     if _is_bundled():
-        return Path(getattr(sys, "_MEIPASS")) / name
+        return _bundled_file(name)
     return Path(__file__).parent / name
 
 
 def _assets_path(name: str) -> Path:
     if _is_bundled():
-        return Path(getattr(sys, "_MEIPASS")) / name
+        return _bundled_file(name)
     return Path(__file__).parent.parent / "assets" / name
 
 
 def _project_root() -> Path:
     if _is_bundled():
-        return Path(getattr(sys, "_MEIPASS"))
+        for root in _bundle_roots():
+            if (root / "pyproject.toml").exists():
+                return root
+        return _bundle_roots()[0]
     return Path(__file__).parent.parent.parent
 
 
 def qml_path(name: str) -> Path:
     if _is_bundled():
-        return Path(getattr(sys, "_MEIPASS")) / "qml" / name
+        return _bundled_file(Path("qml") / name)
     return Path(__file__).parent / "qml" / name
 
 

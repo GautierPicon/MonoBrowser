@@ -1,8 +1,6 @@
 import base64
 import platform
 
-from PyQt6.QtCore import QUrl
-
 from monobrowser.utils import _assets_path, _resource_path, get_version
 
 ABOUT_HTML_PATH = _resource_path("about-pages/version.html")
@@ -33,15 +31,3 @@ def settings_html(engine: str) -> str:
         "{{#duckduckgo}}", " selected" if engine == "duckduckgo" else ""
     )
     return html
-
-
-def render_about(browser):
-    browser.setHtml(version_html(), QUrl("about:version"))
-
-
-def render_newtab(browser):
-    browser.setHtml(newtab_html(), QUrl("about:newtab"))
-
-
-def render_settings(browser, engine):
-    browser.setHtml(settings_html(engine), QUrl("about:settings"))

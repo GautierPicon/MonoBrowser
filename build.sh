@@ -22,12 +22,16 @@ uv run pyinstaller \
     --name "MonoBrowser" \
     --paths src \
     --icon src/assets/icon.icns \
+    --hidden-import PyQt6.QtWebEngineCore \
+    --hidden-import PyQt6.QtWebEngineQuick \
+    --hidden-import PyQt6.QtWebChannel \
     --add-data "src/assets/icon.icns:." \
     --add-data "src/assets/icon.png:." \
     --add-data "src/assets/back.svg:." \
     --add-data "src/assets/forward.svg:." \
     --add-data "src/assets/reload.svg:." \
     --add-data "pyproject.toml:." \
+    --add-data "src/monobrowser/qml:qml" \
     --add-data "src/monobrowser/about-pages:about-pages" \
     src/monobrowser/main.py
 
