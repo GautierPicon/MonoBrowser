@@ -4,7 +4,13 @@ import pytest
 from PyQt6.QtCore import QUrl
 
 from monobrowser import utils
-from monobrowser.utils import build_url, get_version, is_likely_url
+from monobrowser.utils import (
+    build_url,
+    get_version,
+    internal_url_action,
+    is_likely_url,
+    resolve_address_text,
+)
 
 
 @pytest.mark.parametrize(
@@ -54,3 +60,44 @@ def test_get_version_matches_pyproject() -> None:
 def test_get_version_fallback(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(utils, "TOML_PATH", tmp_path / "missing.toml")
     assert get_version() == "0.0.0"
+
+
+def test_resolve_address_text_url() -> None:
+    assert resolve_address_text("example.com") == "https://example.com"
+    assert resolve_address_text("http://example.com/a") == "http://example.com/a"
+
+
+def test_resolve_address_text_search() -> None:
+    assert (
+        resolve_address_text("chat mignon") == "https://duckduckgo.com/?q=chat%20mignon"
+    )
+    assert resolve_address_text("chat mignon", "google").startswith(
+        "https://www.google.com/search?q="
+    )
+
+
+def test_resolve_address_text_unknown_engine_falls_back() -> None:
+    assert resolve_address_text("hello world", "nope").startswith(
+        "https://duckduckgo.com/"
+    )
+
+
+def test_internal_url_action_set_search() -> None:
+    assert internal_url_action("https://monobrowser.internal/set-search?google") == (
+        "set-search",
+        "google",
+    )
+    assert internal_url_action("https://monobrowser.internal/set-search?nope") == (
+        "",
+        "",
+    )
+
+
+def test_internal_url_action_search() -> None:
+    assert internal_url_action(
+        "https://monobrowser.internal/search?q=hello%20world"
+    ) == ("search", "hello world")
+
+
+def test_internal_url_action_other() -> None:
+    assert internal_url_action("https://example.com/") == ("", "")
