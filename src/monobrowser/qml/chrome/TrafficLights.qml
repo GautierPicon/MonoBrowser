@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import ".."
@@ -24,6 +26,7 @@ Item {
             model: 3
             Rectangle {
                 id: dot
+                required property int index
                 width: 12
                 height: 12
                 radius: 6
@@ -33,7 +36,7 @@ Item {
 
                 Text {
                     anchors.centerIn: parent
-                    text: root.glyphs[index]
+                    text: root.glyphs[dot.index]
                     font.pixelSize: 9
                     color: "#00000099"
                     visible: root.hovered >= 0 && root.windowActive
@@ -45,11 +48,11 @@ Item {
                     height: 20
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onEntered: root.hovered = index
+                    onEntered: root.hovered = dot.index
                     onExited: root.hovered = -1
-                    onClicked: root.activated(index)
+                    onClicked: root.activated(dot.index)
 
-                    ToolTip.text: root.tips[index]
+                    ToolTip.text: root.tips[dot.index]
                     ToolTip.visible: containsMouse
                 }
             }

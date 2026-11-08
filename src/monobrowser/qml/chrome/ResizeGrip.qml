@@ -8,6 +8,6 @@ Item {
     MouseArea {
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton
-        onPressed: root.Window.startSystemResize(root.edge)
+        onPressed: root.Window.window.startSystemResize(root.edge)
     }
 }

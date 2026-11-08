@@ -23,20 +23,20 @@ Item {
 
         MenuItem {
             text: "New Tab"
-            onTriggered: windowRef.addTab()
+            onTriggered: root.windowRef.addTab()
         }
         MenuItem {
             text: "Settings"
-            onTriggered: windowRef.openAbout("settings")
+            onTriggered: root.windowRef.openAbout("settings")
         }
         MenuItem {
             text: "About MonoBrowser"
-            onTriggered: windowRef.openAbout("version")
+            onTriggered: root.windowRef.openAbout("version")
         }
         MenuSeparator {}
         MenuItem {
             text: "Quit MonoBrowser"
-            onTriggered: windowRef.close()
+            onTriggered: root.windowRef.close()
         }
     }
 }

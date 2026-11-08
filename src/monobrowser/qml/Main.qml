@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Controls
-import QtWebEngine
 import "chrome"
 
 ApplicationWindow {
@@ -15,7 +14,7 @@ ApplicationWindow {
 
     flags: Qt.Window | Qt.FramelessWindowHint
 
-    ListModel { id: tabModel }
+    ListModel { id: tabs }
 
     property int currentIndex: -1
     property var views: []
@@ -29,23 +28,23 @@ ApplicationWindow {
     }
 
     function setRole(index, role, value) {
-        if (index < 0 || index >= tabModel.count)
+        if (index < 0 || index >= tabs.count)
             return
         if (typeof value !== "string")
             return
-        tabModel.setProperty(index, role, value)
+        tabs.setProperty(index, role, value)
     }
 
     function addTab(url) {
         var view = createView()
         views.push(view)
         var target = url !== undefined && url !== null ? url : ""
-        tabModel.append({
+        tabs.append({
             title: "New Tab",
             url: target,
             favicon: ""
         })
-        var index = tabModel.count - 1
+        var index = tabs.count - 1
         if (view) {
             if (target !== "")
                 view.url = target
@@ -67,8 +66,10 @@ ApplicationWindow {
         var view = component.createObject(contentArea)
         if (view === null)
             return null
+        // qmllint disable missing-property
         view.anchors.fill = contentArea
         view.tabIndex = views.length
+        // qmllint enable missing-property
         connectView(view)
         return view
     }
@@ -95,7 +96,7 @@ ApplicationWindow {
             return
         }
         if (action === "search") {
-            var query = bridge.internalParam(text)
+            const query = bridge.internalParam(text)
             if (query !== "")
                 view.url = bridge.resolveAddress(query)
             else
@@ -120,17 +121,17 @@ ApplicationWindow {
     }
 
     function setCurrentIndex(index) {
-        if (index < 0 || index >= tabModel.count)
+        if (index < 0 || index >= tabs.count)
             return
-        for (var i = 0; i < views.length; ++i) {
-            var view = views[i]
+        for (let i = 0; i < views.length; ++i) {
+            const view = views[i]
             if (view)
                 view.visible = i === index
         }
         currentIndex = index
         var current = currentView
         if (current) {
-            var url = current.url.toString()
+            const url = current.url.toString()
             address = url === "about:newtab" ? "" : url
             navBar.refreshHistory(current.canGoBack, current.canGoForward)
             navBar.loading = current.loading
@@ -152,23 +153,23 @@ ApplicationWindow {
     }
 
     function closeTab(index) {
-        if (tabModel.count <= 1 || index < 0 || index >= tabModel.count)
+        if (tabs.count <= 1 || index < 0 || index >= tabs.count)
             return
 
         var view = views[index]
-        tabModel.remove(index)
+        tabs.remove(index)
         views.splice(index, 1)
         if (view)
             view.destroy()
 
-        for (var i = index; i < views.length; ++i) {
+        for (let i = index; i < views.length; ++i) {
             if (views[i])
                 views[i].tabIndex = i
         }
 
-        if (tabModel.count === 0)
+        if (tabs.count === 0)
             return
-        var next = Math.min(index, tabModel.count - 1)
+        var next = Math.min(index, tabs.count - 1)
         setCurrentIndex(next)
     }
 
@@ -212,7 +213,7 @@ ApplicationWindow {
                 anchors.right: parent.right
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
-                tabModel: tabModel
+                tabModel: tabs
                 currentIndex: window.currentIndex
                 onTabClicked: function (index) { window.setCurrentIndex(index) }
                 onTabClosed: function (index) { window.closeTab(index) }

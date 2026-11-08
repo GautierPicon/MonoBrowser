@@ -2,7 +2,7 @@ pragma Singleton
 import QtQuick
 
 QtObject {
-    readonly property bool dark: Qt.styleHints.colorScheme === Qt.Dark
+    readonly property bool dark: Qt.styleHints.colorScheme === Qt.Dark // qmllint disable missing-property
 
     readonly property color tabstripBg: dark ? "#282A2D" : "#F1F3F4"
     readonly property color tabActiveBg: dark ? "#35373B" : "#FFFFFF"
