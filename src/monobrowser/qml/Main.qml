@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import "chrome"
 
-ApplicationWindow {
+Window {
     id: window
     width: 1200
     height: 800
@@ -10,9 +10,10 @@ ApplicationWindow {
     minimumWidth: 480
     minimumHeight: 320
     color: Theme.tabstripBg
-    title: currentView && currentView.title !== "" ? currentView.title : "MonoBrowser"
 
-    flags: Qt.Window | Qt.FramelessWindowHint
+    flags: Qt.Window | Qt.WindowTitleHint | Qt.WindowSystemMenuHint
+         | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint
+         | Qt.ExpandedClientAreaHint | Qt.NoTitleBarBackgroundHint
 
     ListModel { id: tabs }
 
@@ -121,6 +122,13 @@ ApplicationWindow {
         loadingBar.value = view.loadProgress / 100.0
     }
 
+    function toggleZoom() {
+        if (visibility === Window.Maximized || visibility === Window.FullScreen)
+            showNormal()
+        else
+            showMaximized()
+    }
+
     function setCurrentIndex(index) {
         if (index < 0 || index >= tabs.count)
             return
@@ -220,6 +228,7 @@ ApplicationWindow {
                 onTabClosed: function (index) { window.closeTab(index) }
                 onNewTabRequested: window.addTab()
                 onBackgroundPressed: window.startSystemMove()
+                onBackgroundDoubleClicked: window.toggleZoom()
             }
 
             AppMenu {
@@ -227,23 +236,6 @@ ApplicationWindow {
                 anchors.rightMargin: 8
                 anchors.verticalCenter: parent.verticalCenter
                 windowRef: window
-            }
-
-            TrafficLights {
-                anchors.left: parent.left
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                windowActive: window.active
-                onActivated: function (index) {
-                    if (index === 0)
-                        window.close()
-                    else if (index === 1)
-                        window.showMinimized()
-                    else if (window.visibility === Window.Maximized)
-                        window.showNormal()
-                    else
-                        window.showMaximized()
-                }
             }
         }
 
@@ -295,63 +287,6 @@ ApplicationWindow {
     Shortcut { sequences: ["Ctrl+L"]; onActivated: window.focusAddress() }
     Shortcut { sequences: ["Ctrl+R"]; onActivated: if (window.currentView) window.currentView.reload() }
     Shortcut { sequences: ["Escape"]; onActivated: if (window.currentView) window.currentView.stop() }
-
-    ResizeGrip {
-        edge: Qt.LeftEdge
-        x: 0
-        y: 0
-        width: 6
-        height: window.height
-    }
-    ResizeGrip {
-        edge: Qt.RightEdge
-        x: window.width - 6
-        y: 0
-        width: 6
-        height: window.height
-    }
-    ResizeGrip {
-        edge: Qt.TopEdge
-        x: 0
-        y: 0
-        width: window.width
-        height: 6
-    }
-    ResizeGrip {
-        edge: Qt.BottomEdge
-        x: 0
-        y: window.height - 6
-        width: window.width
-        height: 6
-    }
-    ResizeGrip {
-        edge: Qt.TopLeftCorner
-        x: 0
-        y: 0
-        width: 12
-        height: 12
-    }
-    ResizeGrip {
-        edge: Qt.TopRightCorner
-        x: window.width - 12
-        y: 0
-        width: 12
-        height: 12
-    }
-    ResizeGrip {
-        edge: Qt.BottomLeftCorner
-        x: 0
-        y: window.height - 12
-        width: 12
-        height: 12
-    }
-    ResizeGrip {
-        edge: Qt.BottomRightCorner
-        x: window.width - 12
-        y: window.height - 12
-        width: 12
-        height: 12
-    }
 
     Component.onCompleted: addTab()
 }

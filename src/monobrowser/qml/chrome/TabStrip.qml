@@ -13,6 +13,7 @@ Item {
     signal tabClosed(int index)
     signal newTabRequested()
     signal backgroundPressed()
+    signal backgroundDoubleClicked()
 
     implicitHeight: 40
 
@@ -151,12 +152,31 @@ Item {
     }
 
     MouseArea {
+        id: backgroundArea
         anchors.left: newTabButton.right
         anchors.leftMargin: 6
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         acceptedButtons: Qt.LeftButton
-        onPressed: root.backgroundPressed()
+
+        property point pressPoint
+        property bool moving: false
+
+        onPressed: function (mouse) {
+            backgroundArea.pressPoint = Qt.point(mouse.x, mouse.y)
+            backgroundArea.moving = false
+        }
+        onPositionChanged: function (mouse) {
+            if (!pressed || backgroundArea.moving)
+                return
+            if (Math.abs(mouse.x - backgroundArea.pressPoint.x) > 4
+                    || Math.abs(mouse.y - backgroundArea.pressPoint.y) > 4) {
+                backgroundArea.moving = true
+                root.backgroundPressed()
+            }
+        }
+        onReleased: backgroundArea.moving = false
+        onDoubleClicked: root.backgroundDoubleClicked()
     }
 }
