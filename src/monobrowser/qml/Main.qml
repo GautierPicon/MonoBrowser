@@ -19,6 +19,7 @@ ApplicationWindow {
     property int currentIndex: -1
     property var views: []
     property var address: ""
+    property var bridge: null
 
     readonly property var currentView:
         currentIndex >= 0 && currentIndex < views.length ? views[currentIndex] : null

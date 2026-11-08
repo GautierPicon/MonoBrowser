@@ -26,7 +26,7 @@ def main():
     )
     engine.addImportPath(str(QML_DIR))
     bridge = Bridge()
-    engine.rootContext().setContextProperty("bridge", bridge)
+    engine.setInitialProperties({"bridge": bridge})
 
     main_qml = qml_path("Main.qml")
     if not main_qml.exists():
