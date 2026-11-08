@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtWebEngine
+import "chrome"
 
 ApplicationWindow {
     id: window
