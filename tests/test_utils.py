@@ -1,4 +1,5 @@
 import base64
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -55,7 +56,8 @@ def test_build_url_keeps_scheme() -> None:
 
 
 def test_get_version_matches_pyproject() -> None:
-    assert get_version() == "1.2.0"
+    data = tomllib.loads(utils.TOML_PATH.read_text())
+    assert get_version() == data["project"]["version"]
 
 
 def test_get_version_fallback(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
