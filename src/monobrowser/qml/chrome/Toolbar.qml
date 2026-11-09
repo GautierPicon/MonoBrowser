@@ -1,8 +1,9 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 import ".."
 
-Row {
+RowLayout {
     id: root
 
     property bool canGoBack: false
@@ -77,9 +78,9 @@ Row {
 
     Rectangle {
         id: addressBg
-        width: parent.width - root.children.length * 32
+        Layout.fillWidth: true
         height: 26
-        anchors.verticalCenter: parent.verticalCenter
+        Layout.alignment: Qt.AlignVCenter
         radius: 8
         color: Theme.urlbarBg
         border.width: 1
