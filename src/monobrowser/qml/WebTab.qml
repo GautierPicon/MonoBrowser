@@ -10,6 +10,7 @@ WebEngineView {
 
     signal pageChanged()
     signal popupRequested()
+    signal hoveredLink(string target)
 
     focus: true
 
@@ -21,6 +22,7 @@ WebEngineView {
     onIconChanged: pageChanged()
     onLoadingChanged: pageChanged()
     onLoadProgressChanged: pageChanged()
+    onLinkHovered: function (url) { hoveredLink(url.toString()) }
 
     onCertificateError: function (error) {
         certificateError = true

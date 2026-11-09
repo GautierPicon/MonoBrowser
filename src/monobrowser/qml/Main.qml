@@ -90,6 +90,14 @@ Window {
             if (view === currentView)
                 navBar.certificateError = view.certificateError
         })
+        view.hoveredLink.connect(function (target) {
+            if (view === currentView)
+                linkBar.target = target
+        })
+        view.urlChanged.connect(function () {
+            if (view === currentView)
+                linkBar.target = ""
+        })
     }
 
     function updateLifecycle(view) {
@@ -149,6 +157,7 @@ Window {
     function setCurrentIndex(index) {
         if (index < 0 || index >= tabs.count)
             return
+        linkBar.target = ""
         currentIndex = index
         for (let i = 0; i < views.length; ++i) {
             const view = views[i]
@@ -302,6 +311,14 @@ Window {
             height: parent.height - tabstripRow.height - 38 - 3
             clip: true
         }
+    }
+
+    LinkBar {
+        id: linkBar
+        anchors.left: parent.left
+        anchors.bottom: parent.bottom
+        anchors.leftMargin: 8
+        anchors.bottomMargin: 8
     }
 
     Shortcut { sequences: ["Ctrl+T"]; onActivated: window.addTab() }
