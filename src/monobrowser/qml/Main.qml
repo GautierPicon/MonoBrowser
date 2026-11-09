@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtWebEngine
 import "chrome"
 
 Window {
@@ -84,6 +85,15 @@ Window {
             var index = addTab()
             view.openPending(views[index])
         })
+        view.recentlyAudibleChanged.connect(function () { updateLifecycle(view) })
+    }
+
+    function updateLifecycle(view) {
+        if (!view)
+            return
+        var active = views.indexOf(view) === currentIndex || view.recentlyAudible
+        view.lifecycleState = active ? WebEngineView.LifecycleState.Active
+                                     : WebEngineView.LifecycleState.Frozen
     }
 
     function syncView(view) {
@@ -134,12 +144,14 @@ Window {
     function setCurrentIndex(index) {
         if (index < 0 || index >= tabs.count)
             return
+        currentIndex = index
         for (let i = 0; i < views.length; ++i) {
             const view = views[i]
-            if (view)
-                view.visible = i === index
+            if (!view)
+                continue
+            view.visible = i === index
+            updateLifecycle(view)
         }
-        currentIndex = index
         var current = currentView
         if (current) {
             const url = current.url.toString()
