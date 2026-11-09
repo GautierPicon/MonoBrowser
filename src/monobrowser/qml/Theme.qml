@@ -20,4 +20,10 @@ QtObject {
     readonly property color iconDisabled: dark ? "#5F6368" : "#9AA0A6"
     readonly property color newtabHover: dark ? "#45484D" : "#C7CBD1"
     readonly property color progress: "#5B8DEF"
+    readonly property color menuBg: dark ? "#F7292B2E" : "#F7FFFFFF"
+    readonly property color menuBorder: dark ? "#33FFFFFF" : "#1F000000"
+    readonly property color menuText: dark ? "#E8EAED" : "#1D1D1F"
+    readonly property color menuTextDim: dark ? "#9AA0A6" : "#86868B"
+    readonly property color menuHover: dark ? "#0A84FF" : "#007AFF"
+    readonly property color menuHoverText: "#FFFFFF"
 }

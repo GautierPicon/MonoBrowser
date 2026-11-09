@@ -285,6 +285,7 @@ Window {
     Shortcut { sequences: ["Ctrl+T"]; onActivated: window.addTab() }
     Shortcut { sequences: ["Ctrl+W"]; onActivated: window.closeTab(window.currentIndex) }
     Shortcut { sequences: ["Ctrl+L"]; onActivated: window.focusAddress() }
+    Shortcut { sequences: ["Ctrl+,"]; onActivated: window.openAbout("settings") }
     Shortcut { sequences: ["Ctrl+R"]; onActivated: if (window.currentView) window.currentView.reload() }
     Shortcut { sequences: ["Escape"]; onActivated: if (window.currentView) window.currentView.stop() }
 
