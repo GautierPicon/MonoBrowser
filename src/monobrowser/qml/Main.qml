@@ -271,6 +271,7 @@ Window {
         }
 
         Rectangle {
+            id: toolbarRow
             width: parent.width
             height: 38
             color: Theme.toolbarBg
@@ -310,7 +311,7 @@ Window {
         Item {
             id: contentArea
             width: parent.width
-            height: parent.height - tabstripRow.height - 38 - 3
+            height: parent.height - tabstripRow.height - toolbarRow.height - loadingBar.implicitHeight
             clip: true
         }
     }
