@@ -17,6 +17,14 @@ Window {
 
     ListModel { id: tabs }
 
+    Component {
+        id: tabViewComponent
+
+        WebTab {
+            anchors.fill: parent
+        }
+    }
+
     property int currentIndex: -1
     property var views: []
     property var address: ""
@@ -60,18 +68,12 @@ Window {
     }
 
     function createView() {
-        var component = Qt.createComponent("TabView.qml")
-        if (component.status === Component.Error) {
-            console.warn("TabView.qml:", component.errorString())
+        var view = tabViewComponent.createObject(contentArea,
+                                                 { tabIndex: views.length })
+        if (view === null) {
+            console.warn("WebTab.qml: failed to create tab view")
             return null
         }
-        var view = component.createObject(contentArea)
-        if (view === null)
-            return null
-        // qmllint disable missing-property
-        view.anchors.fill = contentArea
-        view.tabIndex = views.length
-        // qmllint enable missing-property
         connectView(view)
         return view
     }
