@@ -48,6 +48,8 @@ Window {
 
     function addTab(url) {
         var view = createView()
+        if (!view)
+            return -1
         views.push(view)
         var target = url !== undefined && url !== null ? url : ""
         tabs.append({
@@ -56,12 +58,10 @@ Window {
             favicon: ""
         })
         var index = tabs.count - 1
-        if (view) {
-            if (target !== "")
-                view.url = target
-            else
-                view.loadHtml(bridge.newtabHtml(), "about:newtab")
-        }
+        if (target !== "")
+            view.url = target
+        else
+            view.loadHtml(bridge.newtabHtml(), "about:newtab")
         setCurrentIndex(index)
         if (index > 0)
             focusAddress()
@@ -83,7 +83,8 @@ Window {
         view.pageChanged.connect(function () { syncView(view) })
         view.popupRequested.connect(function () {
             var index = addTab()
-            view.openPending(views[index])
+            if (index >= 0)
+                view.openPending(views[index])
         })
         view.recentlyAudibleChanged.connect(function () { updateLifecycle(view) })
         view.certificateErrorChanged.connect(function () {
