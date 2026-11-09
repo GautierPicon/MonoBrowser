@@ -34,6 +34,10 @@ class Bridge(QObject):
     def resolveAddress(self, text: str) -> str:
         return utils.resolve_address_text(text, self._search_engine)
 
+    @pyqtSlot(str, str, result="QString")
+    def iconUrl(self, name: str, color: str) -> str:
+        return utils.icon_data_url(name, color)
+
     @pyqtSlot(str, result="QString")
     def internalAction(self, url: str) -> str:
         return utils.internal_url_action(url)[0]

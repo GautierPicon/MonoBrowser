@@ -86,6 +86,10 @@ Window {
             view.openPending(views[index])
         })
         view.recentlyAudibleChanged.connect(function () { updateLifecycle(view) })
+        view.certificateErrorChanged.connect(function () {
+            if (view === currentView)
+                navBar.certificateError = view.certificateError
+        })
     }
 
     function updateLifecycle(view) {
@@ -128,6 +132,7 @@ Window {
             return
 
         address = text === "about:newtab" ? "" : text
+        navBar.certificateError = view.certificateError
         navBar.refreshHistory(view.canGoBack, view.canGoForward)
         navBar.loading = view.loading
         loadingBar.visible = view.loading
@@ -156,6 +161,7 @@ Window {
         if (current) {
             const url = current.url.toString()
             address = url === "about:newtab" ? "" : url
+            navBar.certificateError = current.certificateError
             navBar.refreshHistory(current.canGoBack, current.canGoForward)
             navBar.loading = current.loading
             loadingBar.visible = current.loading
@@ -264,6 +270,8 @@ Window {
                 anchors.leftMargin: 6
                 anchors.rightMargin: 6
                 address: window.address
+                secureIcon: window.bridge.iconUrl("lock/lock.svg", Theme.textInactive)
+                insecureIcon: window.bridge.iconUrl("lock/lock-open.svg", "")
                 onBackRequested: if (window.currentView) window.currentView.goBack()
                 onForwardRequested: if (window.currentView) window.currentView.goForward()
                 onReloadRequested: if (window.currentView) window.currentView.reload()

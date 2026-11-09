@@ -1,3 +1,4 @@
+import base64
 import re
 import sys
 import tomllib
@@ -53,6 +54,13 @@ def qml_path(name: str) -> Path:
     if _is_bundled():
         return _bundled_file(Path("qml") / name)
     return Path(__file__).parent / "qml" / name
+
+
+def icon_data_url(name: str, color: str) -> str:
+    svg = _assets_path(name).read_text(encoding="utf-8")
+    svg = svg.replace("currentColor", color)
+    encoded = base64.b64encode(svg.encode("utf-8")).decode("ascii")
+    return f"data:image/svg+xml;base64,{encoded}"
 
 
 ICON_PATH = _assets_path("icon.icns")

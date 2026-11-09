@@ -9,6 +9,13 @@ Row {
     property bool canGoForward: false
     property bool loading: false
     property string address: ""
+    property bool editing: false
+    property bool certificateError: false
+    property url secureIcon: ""
+    property url insecureIcon: ""
+
+    readonly property bool secure: !certificateError && address.indexOf("https://") === 0
+    readonly property bool insecure: certificateError || address.indexOf("http://") === 0
 
     signal backRequested()
     signal forwardRequested()
@@ -26,6 +33,26 @@ Row {
     function refreshHistory(back, forward) {
         root.canGoBack = back
         root.canGoForward = forward
+    }
+
+    function displayAddress(value) {
+        var text = String(value)
+        if (text.indexOf("https://") === 0)
+            text = text.substring(8)
+        else if (text.indexOf("http://") === 0)
+            text = text.substring(7)
+        else
+            return text
+        if (text.indexOf("www.") === 0)
+            text = text.substring(4)
+        return text
+    }
+
+    onAddressChanged: {
+        if (!addressInput.activeFocus)
+            addressInput.text = displayAddress(root.address)
+        else if (!root.editing)
+            addressInput.text = root.address
     }
 
     NavButton {
@@ -62,10 +89,36 @@ Row {
             ColorAnimation { duration: 120 }
         }
 
+        Item {
+            id: securityIcon
+            width: 13
+            height: 14
+            anchors.left: parent.left
+            anchors.leftMargin: 8
+            anchors.verticalCenter: parent.verticalCenter
+            visible: root.secure || root.insecure
+
+            Image {
+                anchors.fill: parent
+                visible: root.secure
+                source: root.secureIcon
+                sourceSize: Qt.size(13, 14)
+                fillMode: Image.PreserveAspectFit
+            }
+
+            Image {
+                anchors.fill: parent
+                visible: root.insecure
+                source: root.insecureIcon
+                sourceSize: Qt.size(13, 14)
+                fillMode: Image.PreserveAspectFit
+            }
+        }
+
         TextField {
             id: addressInput
             anchors.fill: parent
-            anchors.leftMargin: 10
+            anchors.leftMargin: 26
             anchors.rightMargin: 10
             verticalAlignment: TextInput.AlignVCenter
             background: null
@@ -75,16 +128,29 @@ Row {
             selectionColor: Theme.urlbarFocus
             selectedTextColor: Theme.textActive
             font.pixelSize: 13
-            text: root.address
+            text: root.displayAddress(root.address)
             selectByMouse: true
 
-            onAccepted: root.addressSubmitted(text)
+            onTextEdited: root.editing = true
+
+            onAccepted: {
+                root.editing = false
+                root.addressSubmitted(text)
+            }
+
             onActiveFocusChanged: {
-                if (activeFocus)
+                if (activeFocus) {
+                    root.editing = false
+                    text = root.address
                     selectAll()
+                } else {
+                    root.editing = false
+                    text = root.displayAddress(root.address)
+                }
             }
 
             Keys.onEscapePressed: {
+                root.editing = false
                 text = root.address
                 focus = false
             }

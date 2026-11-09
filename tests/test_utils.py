@@ -1,3 +1,4 @@
+import base64
 from pathlib import Path
 
 import pytest
@@ -101,3 +102,11 @@ def test_internal_url_action_search() -> None:
 
 def test_internal_url_action_other() -> None:
     assert internal_url_action("https://example.com/") == ("", "")
+
+
+def test_icon_data_url_replaces_current_color() -> None:
+    url = utils.icon_data_url("lock/lock.svg", "#123456")
+    assert url.startswith("data:image/svg+xml;base64,")
+    svg = base64.b64decode(url.split(",", 1)[1]).decode()
+    assert "#123456" in svg
+    assert "currentColor" not in svg

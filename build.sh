@@ -30,6 +30,7 @@ uv run pyinstaller \
     --add-data "src/assets/back.svg:." \
     --add-data "src/assets/forward.svg:." \
     --add-data "src/assets/reload.svg:." \
+    --add-data "src/assets/lock:lock" \
     --add-data "pyproject.toml:." \
     --add-data "src/monobrowser/qml:qml" \
     --add-data "src/monobrowser/about-pages:about-pages" \

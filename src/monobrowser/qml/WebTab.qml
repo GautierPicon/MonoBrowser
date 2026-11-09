@@ -6,17 +6,26 @@ WebEngineView {
 
     property int tabIndex: -1
     property var pendingRequest: null
+    property bool certificateError: false
 
     signal pageChanged()
     signal popupRequested()
 
     focus: true
 
-    onUrlChanged: pageChanged()
+    onUrlChanged: {
+        certificateError = false
+        pageChanged()
+    }
     onTitleChanged: pageChanged()
     onIconChanged: pageChanged()
     onLoadingChanged: pageChanged()
     onLoadProgressChanged: pageChanged()
+
+    onCertificateError: function (error) {
+        certificateError = true
+        error.rejectCertificate()
+    }
 
     onNewWindowRequested: function (request) {
         pendingRequest = request
