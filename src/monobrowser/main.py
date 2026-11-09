@@ -1,7 +1,8 @@
 import os
+import signal
 import sys
 
-from PyQt6.QtCore import QUrl
+from PyQt6.QtCore import QTimer, QUrl
 from PyQt6.QtGui import QGuiApplication, QIcon
 from PyQt6.QtQml import QQmlApplicationEngine
 
@@ -20,6 +21,11 @@ def main():
     app.setApplicationVersion(get_version())
     if not _is_bundled():
         app.setWindowIcon(QIcon(str(ICON_PATH)))
+
+    signal.signal(signal.SIGINT, lambda *_: app.quit())
+    signalWakeup = QTimer()
+    signalWakeup.timeout.connect(lambda: None)
+    signalWakeup.start(200)
 
     engine = QQmlApplicationEngine()
     engine.warnings.connect(
