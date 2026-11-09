@@ -45,4 +45,8 @@ if [ -d "$FW/Resources/Resources" ]; then
     cp -R "$FW/Resources/Resources/" "$FW/A/Resources/"
 fi
 
+EXE="dist/MonoBrowser.app/Contents/MacOS/MonoBrowser"
+vtool -set-build-version macos 11.0 27.0 -replace -output "$EXE" "$EXE" 2>/dev/null
+codesign --force --deep --sign - --timestamp=none dist/MonoBrowser.app
+
 echo "Build complete: dist/MonoBrowser.app"

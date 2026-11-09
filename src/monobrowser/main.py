@@ -6,6 +6,7 @@ from PyQt6.QtGui import QGuiApplication, QIcon
 from PyQt6.QtQml import QQmlApplicationEngine
 
 from monobrowser.bridge import Bridge
+from monobrowser.titlebar import attach
 from monobrowser.utils import ICON_PATH, _is_bundled, get_version, qml_path
 
 QML_DIR = qml_path("").parent
@@ -37,6 +38,8 @@ def main():
     if not engine.rootObjects():
         print(f"failed to load {main_qml}", file=sys.stderr)
         sys.exit(1)
+
+    attach(engine.rootObjects()[0])
 
     sys.exit(app.exec())
 

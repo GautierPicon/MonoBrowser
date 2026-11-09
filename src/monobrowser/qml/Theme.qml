@@ -20,9 +20,4 @@ QtObject {
     readonly property color iconDisabled: dark ? "#5F6368" : "#9AA0A6"
     readonly property color newtabHover: dark ? "#45484D" : "#C7CBD1"
     readonly property color progress: "#5B8DEF"
-
-    readonly property color trafficClose: "#FF5F57"
-    readonly property color trafficMinimize: "#FEBC2E"
-    readonly property color trafficZoom: "#28C840"
-    readonly property color trafficInactive: dark ? "#4D4D4D" : "#D8D8D8"
 }
