@@ -194,6 +194,7 @@ Window {
         if (tabs.count <= 1 || index < 0 || index >= tabs.count)
             return
 
+        var previous = currentIndex
         var view = views[index]
         tabs.remove(index)
         views.splice(index, 1)
@@ -205,10 +206,10 @@ Window {
                 views[i].tabIndex = i
         }
 
-        if (tabs.count === 0)
-            return
-        var next = Math.min(index, tabs.count - 1)
-        setCurrentIndex(next)
+        if (index < previous)
+            setCurrentIndex(previous - 1)
+        else if (index === previous)
+            setCurrentIndex(Math.min(index, tabs.count - 1))
     }
 
     function focusAddress() {
