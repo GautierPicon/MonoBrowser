@@ -2,16 +2,16 @@ import base64
 import platform
 from functools import lru_cache
 
-from monobrowser.utils import _assets_path, _resource_path, get_version
+from monobrowser.utils import assets_path, get_version, resource_path
 
-ABOUT_HTML_PATH = _resource_path("about-pages/version.html")
-NEWTAB_HTML_PATH = _resource_path("about-pages/newtab.html")
-SETTINGS_HTML_PATH = _resource_path("about-pages/settings.html")
+ABOUT_HTML_PATH = resource_path("about-pages/version.html")
+NEWTAB_HTML_PATH = resource_path("about-pages/newtab.html")
+SETTINGS_HTML_PATH = resource_path("about-pages/settings.html")
 
 
 @lru_cache(maxsize=1)
 def _icon_data_uri() -> str:
-    b64 = base64.b64encode(_assets_path("icon.png").read_bytes()).decode()
+    b64 = base64.b64encode(assets_path("icon.png").read_bytes()).decode()
     return f"data:image/png;base64,{b64}"
 
 
