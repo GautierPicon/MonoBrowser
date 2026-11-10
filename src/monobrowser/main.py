@@ -22,10 +22,15 @@ def main():
     if not _is_bundled():
         app.setWindowIcon(QIcon(str(ICON_PATH)))
 
-    signal.signal(signal.SIGINT, lambda *_: app.quit())
     signalWakeup = QTimer()
     signalWakeup.timeout.connect(lambda: None)
     signalWakeup.start(200)
+
+    def handleSigint(*_):
+        signalWakeup.stop()
+        app.quit()
+
+    signal.signal(signal.SIGINT, handleSigint)
 
     engine = QQmlApplicationEngine()
     engine.warnings.connect(

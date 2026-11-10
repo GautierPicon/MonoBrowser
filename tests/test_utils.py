@@ -56,13 +56,16 @@ def test_build_url_keeps_scheme() -> None:
 
 
 def test_get_version_matches_pyproject() -> None:
+    utils.get_version.cache_clear()
     data = tomllib.loads(utils.TOML_PATH.read_text())
     assert get_version() == data["project"]["version"]
 
 
 def test_get_version_fallback(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(utils, "TOML_PATH", tmp_path / "missing.toml")
+    utils.get_version.cache_clear()
     assert get_version() == "0.0.0"
+    utils.get_version.cache_clear()
 
 
 def test_resolve_address_text_url() -> None:

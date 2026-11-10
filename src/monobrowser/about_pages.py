@@ -1,5 +1,6 @@
 import base64
 import platform
+from functools import lru_cache
 
 from monobrowser.utils import _assets_path, _resource_path, get_version
 
@@ -8,13 +9,16 @@ NEWTAB_HTML_PATH = _resource_path("about-pages/newtab.html")
 SETTINGS_HTML_PATH = _resource_path("about-pages/settings.html")
 
 
+@lru_cache(maxsize=1)
+def _icon_data_uri() -> str:
+    b64 = base64.b64encode(_assets_path("icon.png").read_bytes()).decode()
+    return f"data:image/png;base64,{b64}"
+
+
 def version_html() -> str:
     html_template = ABOUT_HTML_PATH.read_text(encoding="utf-8")
-    icon_path = _assets_path("icon.png")
-    b64 = base64.b64encode(icon_path.read_bytes()).decode()
-    icon_data_uri = f"data:image/png;base64,{b64}"
     return (
-        html_template.replace("{{ICON}}", icon_data_uri)
+        html_template.replace("{{ICON}}", _icon_data_uri())
         .replace("{{VERSION}}", get_version())
         .replace("{{ARCHITECTURE}}", platform.machine())
     )

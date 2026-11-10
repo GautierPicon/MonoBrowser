@@ -2,6 +2,7 @@ import base64
 import re
 import sys
 import tomllib
+from functools import lru_cache
 from pathlib import Path
 from urllib.parse import parse_qs, quote, urlsplit
 
@@ -82,11 +83,12 @@ def is_likely_url(text: str) -> bool:
     )
 
 
+@lru_cache(maxsize=1)
 def get_version() -> str:
     try:
         data = tomllib.loads(TOML_PATH.read_text())
         return data["project"]["version"]
-    except Exception:
+    except (OSError, KeyError, tomllib.TOMLDecodeError):
         return "0.0.0"
 
 
