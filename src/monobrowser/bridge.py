@@ -1,9 +1,12 @@
 """Python <-> QML bridge: exposes headless-safe helpers to the QML layer."""
 
-from PyQt6.QtCore import QObject, pyqtProperty, pyqtSignal, pyqtSlot
+import PyQt6.QtCore as QtCore
+from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
 
 from monobrowser import utils
 from monobrowser.about_pages import newtab_html, settings_html, version_html
+
+pyqtProperty = getattr(QtCore, "pyqtProperty")
 
 
 class Bridge(QObject):
@@ -23,7 +26,7 @@ class Bridge(QObject):
             self._search_engine = name
             self.searchEngineChanged.emit()
 
-    @Property(str)
+    @pyqtProperty(str)
     def version(self) -> str:
         return utils.get_version()
 
