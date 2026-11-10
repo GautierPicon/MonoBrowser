@@ -43,6 +43,8 @@ Window {
             return
         if (typeof value !== "string")
             return
+        if (tabs.get(index)[role] === value)
+            return
         tabs.setProperty(index, role, value)
     }
 
