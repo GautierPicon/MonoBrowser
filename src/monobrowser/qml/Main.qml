@@ -198,7 +198,7 @@ Window {
         if (kind === "settings")
             view.loadHtml(bridge.settingsHtml(), "about:settings")
         else
-            view.loadHtml(bridge.aboutHtml(), "about:version")
+            view.loadHtml(bridge.versionHtml(), "about:version")
     }
 
     function closeTab(index) {
@@ -232,7 +232,7 @@ Window {
         if (!target || text === "")
             return
         if (text === "about:version") {
-            target.loadHtml(bridge.aboutHtml(), "about:version")
+            target.loadHtml(bridge.versionHtml(), "about:version")
             return
         }
         if (text === "about:newtab") {
