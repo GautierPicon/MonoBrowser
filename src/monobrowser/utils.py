@@ -70,7 +70,6 @@ if not ICON_PATH.exists():
 TOML_PATH = _project_root() / "pyproject.toml"
 
 KNOWN_SCHEMES = ("http://", "https://", "ftp://", "file://", "about:", "chrome://")
-URL_SCHEMES = ("http://", "https://", "ftp://", "file://", "about:")
 
 
 def is_likely_url(text: str) -> bool:
@@ -93,7 +92,7 @@ def get_version() -> str:
 
 
 def build_url(text: str) -> QUrl:
-    if not text.lower().startswith(URL_SCHEMES):
+    if not text.lower().startswith(KNOWN_SCHEMES):
         text = "https://" + text
     return QUrl(text)
 

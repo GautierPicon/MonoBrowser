@@ -55,6 +55,10 @@ def test_build_url_keeps_scheme() -> None:
     assert build_url("http://example.com").toString() == "http://example.com"
 
 
+def test_build_url_keeps_chrome_scheme() -> None:
+    assert build_url("chrome://settings").toString() == "chrome://settings"
+
+
 def test_get_version_matches_pyproject() -> None:
     utils.get_version.cache_clear()
     data = tomllib.loads(utils.TOML_PATH.read_text())
