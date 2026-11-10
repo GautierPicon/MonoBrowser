@@ -119,6 +119,14 @@ Window {
         loadingBar.value = view.loadProgress / 100.0
     }
 
+    function updateChrome(view) {
+        navBar.certificateError = view.certificateError
+        navBar.refreshHistory(view.canGoBack, view.canGoForward)
+        navBar.loading = view.loading
+        loadingBar.visible = view.loading
+        loadingBar.value = view.loadProgress / 100.0
+    }
+
     function syncView(view) {
         var index = view.tabIndex
         if (index < 0)
@@ -129,7 +137,7 @@ Window {
 
         if (action === "set-search") {
             bridge.searchEngine = bridge.internalParam(text)
-            view.loadHtml(bridge.settingsHtml(), "about:settings")
+            loadAbout(view, "settings")
             return
         }
         if (action === "search") {
@@ -137,7 +145,7 @@ Window {
             if (query !== "")
                 view.url = bridge.resolveAddress(query)
             else
-                view.loadHtml(bridge.newtabHtml(), "about:newtab")
+                loadAbout(view, "newtab")
             return
         }
 
@@ -151,11 +159,7 @@ Window {
             return
 
         address = text === "about:newtab" ? "" : text
-        navBar.certificateError = view.certificateError
-        navBar.refreshHistory(view.canGoBack, view.canGoForward)
-        navBar.loading = view.loading
-        loadingBar.visible = view.loading
-        loadingBar.value = view.loadProgress / 100.0
+        updateChrome(view)
     }
 
     function toggleZoom() {
@@ -181,11 +185,7 @@ Window {
         if (current) {
             const url = current.url.toString()
             address = url === "about:newtab" ? "" : url
-            navBar.certificateError = current.certificateError
-            navBar.refreshHistory(current.canGoBack, current.canGoForward)
-            navBar.loading = current.loading
-            loadingBar.visible = current.loading
-            loadingBar.value = current.loadProgress / 100.0
+            updateChrome(current)
             current.forceActiveFocus()
         }
     }
@@ -195,10 +195,16 @@ Window {
         var view = viewAt(index)
         if (!view)
             return
+        loadAbout(view, kind)
+    }
+
+    function loadAbout(view, kind) {
         if (kind === "settings")
             view.loadHtml(bridge.settingsHtml(), "about:settings")
-        else
+        else if (kind === "version")
             view.loadHtml(bridge.versionHtml(), "about:version")
+        else
+            view.loadHtml(bridge.newtabHtml(), "about:newtab")
     }
 
     function closeTab(index) {
@@ -231,19 +237,14 @@ Window {
         var target = currentView
         if (!target || text === "")
             return
-        if (text === "about:version") {
-            target.loadHtml(bridge.versionHtml(), "about:version")
-            return
-        }
-        if (text === "about:newtab") {
-            target.loadHtml(bridge.newtabHtml(), "about:newtab")
-            return
-        }
-        if (text === "about:settings") {
-            target.loadHtml(bridge.settingsHtml(), "about:settings")
-            return
-        }
-        target.url = bridge.resolveAddress(text)
+        if (text === "about:version")
+            loadAbout(target, "version")
+        else if (text === "about:newtab")
+            loadAbout(target, "newtab")
+        else if (text === "about:settings")
+            loadAbout(target, "settings")
+        else
+            target.url = bridge.resolveAddress(text)
     }
 
     Column {
