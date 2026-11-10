@@ -10,7 +10,7 @@ from monobrowser.bridge import Bridge
 from monobrowser.titlebar import attach
 from monobrowser.utils import ICON_PATH, _is_bundled, get_version, qml_path
 
-QML_DIR = qml_path("").parent
+QML_DIR = qml_path("")
 
 
 def main():
