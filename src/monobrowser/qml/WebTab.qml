@@ -9,6 +9,7 @@ WebEngineView {
     property bool certificateError: false
 
     signal pageChanged()
+    signal progressChanged()
     signal popupRequested()
     signal hoveredLink(string target)
 
@@ -21,7 +22,7 @@ WebEngineView {
     onTitleChanged: pageChanged()
     onIconChanged: pageChanged()
     onLoadingChanged: pageChanged()
-    onLoadProgressChanged: pageChanged()
+    onLoadProgressChanged: progressChanged()
     onLinkHovered: function (url) { hoveredLink(url.toString()) }
 
     onCertificateError: function (error) {

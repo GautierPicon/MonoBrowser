@@ -81,6 +81,7 @@ Window {
 
     function connectView(view) {
         view.pageChanged.connect(function () { syncView(view) })
+        view.progressChanged.connect(function () { updateProgress(view) })
         view.popupRequested.connect(function () {
             var index = addTab()
             if (index >= 0)
@@ -107,6 +108,13 @@ Window {
         var active = views.indexOf(view) === currentIndex || view.recentlyAudible
         view.lifecycleState = active ? WebEngineView.LifecycleState.Active
                                      : WebEngineView.LifecycleState.Frozen
+    }
+
+    function updateProgress(view) {
+        if (view !== currentView)
+            return
+        loadingBar.visible = view.loading
+        loadingBar.value = view.loadProgress / 100.0
     }
 
     function syncView(view) {
