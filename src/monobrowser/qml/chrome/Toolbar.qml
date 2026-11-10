@@ -79,7 +79,7 @@ RowLayout {
     Rectangle {
         id: addressBg
         Layout.fillWidth: true
-        height: 26
+        Layout.preferredHeight: 26
         Layout.alignment: Qt.AlignVCenter
         radius: 8
         color: Theme.urlbarBg
