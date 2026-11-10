@@ -294,7 +294,7 @@ Window {
                 anchors.rightMargin: 6
                 address: window.address
                 secureIcon: window.bridge.iconUrl("lock/lock.svg", Theme.textInactive)
-                insecureIcon: window.bridge.iconUrl("lock/lock-open.svg", "")
+                insecureIcon: window.bridge.iconUrl("lock/lock-open.svg", "#E00000")
                 onBackRequested: if (window.currentView) window.currentView.goBack()
                 onForwardRequested: if (window.currentView) window.currentView.goForward()
                 onReloadRequested: if (window.currentView) window.currentView.reload()

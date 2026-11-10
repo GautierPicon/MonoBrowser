@@ -20,7 +20,6 @@ Rectangle {
         font.pixelSize: 15
         color: !root.enabled ? Theme.iconDisabled
              : (hover.hovered ? Theme.textActive : Theme.iconNormal)
-        opacity: root.enabled ? 1.0 : 0.9
     }
 
     HoverHandler {
