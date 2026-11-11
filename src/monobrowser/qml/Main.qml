@@ -247,93 +247,30 @@ Window {
             target.url = bridge.resolveAddress(text)
     }
 
-    Column {
+    BrowserChrome {
+        id: chrome
         anchors.fill: parent
-        spacing: 0
-
-        Rectangle {
-            id: tabstripRow
-            width: parent.width
-            height: 40
-            color: Theme.tabstripBg
-
-            TabStrip {
-                id: tabstrip
-                anchors.left: parent.left
-                anchors.leftMargin: 78
-                anchors.right: parent.right
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                tabModel: tabs
-                currentIndex: window.currentIndex
-                onTabClicked: function (index) { window.setCurrentIndex(index) }
-                onTabClosed: function (index) { window.closeTab(index) }
-                onNewTabRequested: window.addTab()
-                onBackgroundPressed: window.startSystemMove()
-                onBackgroundDoubleClicked: window.toggleZoom()
-            }
-
-            AppMenu {
-                anchors.right: parent.right
-                anchors.rightMargin: 8
-                anchors.verticalCenter: parent.verticalCenter
-                windowRef: window
-            }
-        }
-
-        Rectangle {
-            id: toolbarRow
-            width: parent.width
-            height: 38
-            color: Theme.toolbarBg
-
-            Toolbar {
-                id: navBar
-                anchors.fill: parent
-                anchors.leftMargin: 6
-                anchors.rightMargin: 6
-                address: window.address
-                secureIcon: window.bridge.iconUrl("lock/lock.svg", Theme.textInactive)
-                insecureIcon: window.bridge.iconUrl("lock/lock-open.svg", "#E00000")
-                onBackRequested: if (window.currentView) window.currentView.goBack()
-                onForwardRequested: if (window.currentView) window.currentView.goForward()
-                onReloadRequested: if (window.currentView) window.currentView.reload()
-                onStopRequested: if (window.currentView) window.currentView.stop()
-                onAddressSubmitted: function (text) { window.navigate(text) }
-            }
-        }
-
-        ProgressBar {
-            id: loadingBar
-            visible: false
-            width: parent.width
-            implicitHeight: 3
-            indeterminate: false
-            from: 0
-            to: 1
-            background: Rectangle { color: "transparent" }
-            contentItem: Rectangle {
-                color: Theme.progress
-                width: loadingBar.visualPosition * loadingBar.width
-                height: 3
-            }
-        }
-
-        Item {
-            id: contentArea
-            width: parent.width
-            height: parent.height - tabstripRow.height - toolbarRow.height - loadingBar.implicitHeight
-            clip: true
-        }
+        tabModel: tabs
+        currentIndex: window.currentIndex
+        address: window.address
+        bridge: window.bridge
+        windowRef: window
+        onTabClicked: function (index) { window.setCurrentIndex(index) }
+        onTabClosed: function (index) { window.closeTab(index) }
+        onNewTabRequested: window.addTab()
+        onBackgroundPressed: window.startSystemMove()
+        onBackgroundDoubleClicked: window.toggleZoom()
+        onAddressSubmitted: function (text) { window.navigate(text) }
+        onBackRequested: if (window.currentView) window.currentView.goBack()
+        onForwardRequested: if (window.currentView) window.currentView.goForward()
+        onReloadRequested: if (window.currentView) window.currentView.reload()
+        onStopRequested: if (window.currentView) window.currentView.stop()
     }
 
-    LinkBar {
-        id: linkBar
-        anchors.left: parent.left
-        anchors.bottom: parent.bottom
-        anchors.leftMargin: 8
-        anchors.bottomMargin: 8
-    }
+    readonly property var navBar: chrome.navBar
+    readonly property var loadingBar: chrome.loadingBar
+    readonly property var linkBar: chrome.linkBar
+    readonly property Item contentArea: chrome.contentArea
 
     Shortcut { sequences: ["Ctrl+T"]; onActivated: window.addTab() }
     Shortcut { sequences: ["Ctrl+W"]; onActivated: window.closeTab(window.currentIndex) }
