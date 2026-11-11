@@ -3,19 +3,21 @@ set -euo pipefail
 
 rm -rf dist build
 
-mkdir -p src/assets/icon.iconset
-sips -z 16 16 src/assets/icon.png --out src/assets/icon.iconset/icon_16x16.png &>/dev/null
-sips -z 32 32 src/assets/icon.png --out src/assets/icon.iconset/icon_16x16@2x.png &>/dev/null
-sips -z 32 32 src/assets/icon.png --out src/assets/icon.iconset/icon_32x32.png &>/dev/null
-sips -z 64 64 src/assets/icon.png --out src/assets/icon.iconset/icon_32x32@2x.png &>/dev/null
-sips -z 128 128 src/assets/icon.png --out src/assets/icon.iconset/icon_128x128.png &>/dev/null
-sips -z 256 256 src/assets/icon.png --out src/assets/icon.iconset/icon_128x128@2x.png &>/dev/null
-sips -z 256 256 src/assets/icon.png --out src/assets/icon.iconset/icon_256x256.png &>/dev/null
-sips -z 512 512 src/assets/icon.png --out src/assets/icon.iconset/icon_256x256@2x.png &>/dev/null
-sips -z 512 512 src/assets/icon.png --out src/assets/icon.iconset/icon_512x512.png &>/dev/null
-sips -z 1024 1024 src/assets/icon.png --out src/assets/icon.iconset/icon_512x512@2x.png &>/dev/null
-iconutil -c icns src/assets/icon.iconset
-rm -rf src/assets/icon.iconset
+ICONSET_DIR="$(mktemp -d)"
+trap 'rm -rf "$ICONSET_DIR"' EXIT
+
+mkdir -p "$ICONSET_DIR/icon.iconset"
+sips -z 16 16 src/assets/icon.png --out "$ICONSET_DIR/icon.iconset/icon_16x16.png"
+sips -z 32 32 src/assets/icon.png --out "$ICONSET_DIR/icon.iconset/icon_16x16@2x.png"
+sips -z 32 32 src/assets/icon.png --out "$ICONSET_DIR/icon.iconset/icon_32x32.png"
+sips -z 64 64 src/assets/icon.png --out "$ICONSET_DIR/icon.iconset/icon_32x32@2x.png"
+sips -z 128 128 src/assets/icon.png --out "$ICONSET_DIR/icon.iconset/icon_128x128.png"
+sips -z 256 256 src/assets/icon.png --out "$ICONSET_DIR/icon.iconset/icon_128x128@2x.png"
+sips -z 256 256 src/assets/icon.png --out "$ICONSET_DIR/icon.iconset/icon_256x256.png"
+sips -z 512 512 src/assets/icon.png --out "$ICONSET_DIR/icon.iconset/icon_256x256@2x.png"
+sips -z 512 512 src/assets/icon.png --out "$ICONSET_DIR/icon.iconset/icon_512x512.png"
+sips -z 1024 1024 src/assets/icon.png --out "$ICONSET_DIR/icon.iconset/icon_512x512@2x.png"
+iconutil -c icns "$ICONSET_DIR/icon.iconset" -o src/assets/icon.icns
 
 uv run pyinstaller \
     --windowed \
@@ -27,9 +29,6 @@ uv run pyinstaller \
     --hidden-import PyQt6.QtWebChannel \
     --add-data "src/assets/icon.icns:." \
     --add-data "src/assets/icon.png:." \
-    --add-data "src/assets/back.svg:." \
-    --add-data "src/assets/forward.svg:." \
-    --add-data "src/assets/reload.svg:." \
     --add-data "src/assets/lock:lock" \
     --add-data "pyproject.toml:." \
     --add-data "src/monobrowser/qml:qml" \
@@ -47,7 +46,7 @@ if [ -d "$FW/Resources/Resources" ]; then
 fi
 
 EXE="dist/MonoBrowser.app/Contents/MacOS/MonoBrowser"
-vtool -set-build-version macos 11.0 27.0 -replace -output "$EXE" "$EXE" 2>/dev/null
+vtool -set-build-version macos 11.0 27.0 -replace -output "$EXE" "$EXE"
 codesign --force --deep --sign - --timestamp=none dist/MonoBrowser.app
 
 echo "Build complete: dist/MonoBrowser.app"
