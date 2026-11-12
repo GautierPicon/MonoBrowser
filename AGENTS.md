@@ -21,7 +21,7 @@ Tiny PyQt6 + Qt Quick/QML + QtWebEngine browser (macOS-only; Windows/Linux untes
 
 ## CI
 
-- Release workflow `.github/workflows/release.yml` on tag `v*` (macos-14 arm64): verify → `./build.sh` → `ditto` zip → GitHub Release with zip asset. Build is unsigned (Gatekeeper warning applies).
+- Release workflow `.github/workflows/release.yml` on tag `v*` (macos-15 arm64): verify → `./build.sh` → `ditto` zip → GitHub Release with zip asset. Build is unsigned (Gatekeeper warning applies).
 - The workflow is only registered once `.github/workflows/` exists on remote `main`; pushing a tag alone never triggers a run. Moving/re-pushing a tag retriggers the build and fails at `gh release create` if the release exists — `gh workflow disable release` first in that case. Never delete a release's tag: GitHub orphans the release into an asset-less draft (`gh release delete --cleanup-tag` also removes the local tag).
 
 ## Style
