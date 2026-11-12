@@ -33,6 +33,7 @@ uv run pyinstaller \
     --add-data "src/assets/nav:nav" \
     --add-data "src/assets/tabs:tabs" \
     --add-data "src/assets/menu:menu" \
+    --add-data "src/assets/pip:pip" \
     --add-data "pyproject.toml:." \
     --add-data "src/monobrowser/qml:qml" \
     --add-data "src/monobrowser/about-pages:about-pages" \
