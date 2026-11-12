@@ -10,6 +10,10 @@ Item {
     property string address: ""
     property var bridge: null
     property var windowRef: null
+    property bool pipActive: false
+    property bool pipDetached: false
+    property bool canPip: false
+    property string pipTitle: ""
 
     readonly property Item contentArea: contentAreaItem
     readonly property var navBar: navBarItem
@@ -26,6 +30,7 @@ Item {
     signal forwardRequested()
     signal reloadRequested()
     signal stopRequested()
+    signal pipRequested()
 
     Column {
         anchors.fill: parent
@@ -60,6 +65,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 windowRef: root.windowRef
                 bridge: root.bridge
+                pipActive: root.pipActive
             }
         }
 
@@ -76,10 +82,13 @@ Item {
                 anchors.rightMargin: 6
                 address: root.address
                 bridge: root.bridge
+                canPip: root.canPip
+                pipActive: root.pipActive
                 onBackRequested: root.backRequested()
                 onForwardRequested: root.forwardRequested()
                 onReloadRequested: root.reloadRequested()
                 onStopRequested: root.stopRequested()
+                onPipRequested: root.pipRequested()
                 onAddressSubmitted: function (text) { root.addressSubmitted(text) }
             }
         }
@@ -105,6 +114,39 @@ Item {
             width: parent.width
             height: parent.height - tabstripRow.height - toolbarRow.height - loadingBarItem.implicitHeight
             clip: true
+
+            Rectangle {
+                anchors.fill: parent
+                visible: root.pipDetached
+                color: Theme.toolbarBg
+
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 10
+
+                    IconImage {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        bridge: root.bridge
+                        iconName: "pip/pip.svg"
+                        color: Theme.textInactive
+                        size: 34
+                    }
+
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: root.pipTitle !== "" ? root.pipTitle : "Playing in Picture in Picture"
+                        font.pixelSize: 13
+                        color: Theme.textInactive
+                    }
+
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: "Press ⌘⇧P to return"
+                        font.pixelSize: 11
+                        color: Theme.textInactive
+                    }
+                }
+            }
         }
     }
 

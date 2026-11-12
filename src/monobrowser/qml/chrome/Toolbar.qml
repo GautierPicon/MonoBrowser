@@ -13,6 +13,8 @@ RowLayout {
     property bool editing: false
     property bool certificateError: false
     property var bridge: null
+    property bool canPip: false
+    property bool pipActive: false
 
     readonly property bool secure: !certificateError && address.indexOf("https://") === 0
     readonly property bool insecure: certificateError || address.indexOf("http://") === 0
@@ -22,6 +24,7 @@ RowLayout {
     signal reloadRequested()
     signal stopRequested()
     signal addressSubmitted(string text)
+    signal pipRequested()
 
     spacing: 2
 
@@ -77,6 +80,14 @@ RowLayout {
         bridge: root.bridge
         tip: root.loading ? "Stop" : "Reload"
         onClicked: root.loading ? root.stopRequested() : root.reloadRequested()
+    }
+
+    NavButton {
+        visible: root.canPip || root.pipActive
+        iconName: "pip/pip.svg"
+        bridge: root.bridge
+        tip: root.pipActive ? "Exit Picture in Picture" : "Picture in Picture"
+        onClicked: root.pipRequested()
     }
 
     Rectangle {

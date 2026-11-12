@@ -8,6 +8,7 @@ Item {
 
     property var windowRef: null
     property var bridge: null
+    property bool pipActive: false
 
     readonly property int menuPadding: 20
     readonly property int menuWidth: 200
@@ -126,6 +127,11 @@ Item {
             text: "New Tab"
             shortcut: "⌘T"
             onTriggered: root.windowRef.addTab()
+        }
+        Entry {
+            text: root.pipActive ? "Exit Picture in Picture" : "Picture in Picture"
+            shortcut: "⌘⇧P"
+            onTriggered: root.windowRef.togglePip()
         }
         Entry {
             text: "Settings"
