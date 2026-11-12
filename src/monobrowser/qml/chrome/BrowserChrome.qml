@@ -59,6 +59,7 @@ Item {
                 anchors.rightMargin: 8
                 anchors.verticalCenter: parent.verticalCenter
                 windowRef: root.windowRef
+                bridge: root.bridge
             }
         }
 

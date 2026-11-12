@@ -7,6 +7,7 @@ Item {
     id: root
 
     property var windowRef: null
+    property var bridge: null
 
     readonly property int menuPadding: 20
     readonly property int menuWidth: 200
@@ -18,7 +19,6 @@ Item {
     ToolButton {
         id: button
         anchors.fill: parent
-        text: "☰"
         padding: 0
         hoverEnabled: true
 
@@ -27,12 +27,14 @@ Item {
             color: button.hovered ? Theme.newtabHover : "transparent"
         }
 
-        contentItem: Text {
-            text: button.text
-            font.pixelSize: 15
-            color: button.hovered ? Theme.textActive : Theme.iconNormal
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
+        contentItem: Item {
+            IconImage {
+                anchors.centerIn: parent
+                bridge: root.bridge
+                iconName: "menu/menu.svg"
+                color: button.hovered ? Theme.textActive : Theme.iconNormal
+                size: 16
+            }
         }
 
         onClicked: rootMenu.popup(button,
