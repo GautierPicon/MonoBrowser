@@ -2,74 +2,62 @@ import base64
 import re
 import sys
 import tomllib
+from functools import lru_cache
 from pathlib import Path
 from urllib.parse import parse_qs, quote, urlsplit
 
 from PyQt6.QtCore import QUrl
 
 
-def _is_bundled() -> bool:
+def is_bundled() -> bool:
     return getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS")
 
 
-def _bundle_roots() -> list[Path]:
-    meipass = Path(getattr(sys, "_MEIPASS", "."))
-    return [
-        meipass,
-        meipass / ".." / "Resources",
-        meipass / ".." / "Frameworks",
-    ]
+def _bundle_root() -> Path:
+    return Path(getattr(sys, "_MEIPASS", "."))
 
 
 def _bundled_file(name: Path | str) -> Path:
-    for root in _bundle_roots():
-        candidate = (root / name).resolve()
-        if candidate.exists():
-            return candidate
-    return (_bundle_roots()[0] / name).resolve()
+    return (_bundle_root() / name).resolve()
 
 
-def _resource_path(name: str) -> Path:
-    if _is_bundled():
+def resource_path(name: str) -> Path:
+    if is_bundled():
         return _bundled_file(name)
     return Path(__file__).parent / name
 
 
-def _assets_path(name: str) -> Path:
-    if _is_bundled():
+def assets_path(name: str) -> Path:
+    if is_bundled():
         return _bundled_file(name)
     return Path(__file__).parent.parent / "assets" / name
 
 
 def _project_root() -> Path:
-    if _is_bundled():
-        for root in _bundle_roots():
-            if (root / "pyproject.toml").exists():
-                return root
-        return _bundle_roots()[0]
+    if is_bundled():
+        return _bundle_root()
     return Path(__file__).parent.parent.parent
 
 
 def qml_path(name: str) -> Path:
-    if _is_bundled():
+    if is_bundled():
         return _bundled_file(Path("qml") / name)
     return Path(__file__).parent / "qml" / name
 
 
 def icon_data_url(name: str, color: str) -> str:
-    svg = _assets_path(name).read_text(encoding="utf-8")
+    svg = assets_path(name).read_text(encoding="utf-8")
     svg = svg.replace("currentColor", color)
     encoded = base64.b64encode(svg.encode("utf-8")).decode("ascii")
     return f"data:image/svg+xml;base64,{encoded}"
 
 
-ICON_PATH = _assets_path("icon.icns")
+ICON_PATH = assets_path("icon.icns")
 if not ICON_PATH.exists():
-    ICON_PATH = _assets_path("icon.png")
+    ICON_PATH = assets_path("icon.png")
 TOML_PATH = _project_root() / "pyproject.toml"
 
 KNOWN_SCHEMES = ("http://", "https://", "ftp://", "file://", "about:", "chrome://")
-URL_SCHEMES = ("http://", "https://", "ftp://", "file://", "about:")
 
 
 def is_likely_url(text: str) -> bool:
@@ -82,16 +70,17 @@ def is_likely_url(text: str) -> bool:
     )
 
 
+@lru_cache(maxsize=1)
 def get_version() -> str:
     try:
         data = tomllib.loads(TOML_PATH.read_text())
         return data["project"]["version"]
-    except Exception:
+    except (OSError, KeyError, tomllib.TOMLDecodeError):
         return "0.0.0"
 
 
 def build_url(text: str) -> QUrl:
-    if not text.lower().startswith(URL_SCHEMES):
+    if not text.lower().startswith(KNOWN_SCHEMES):
         text = "https://" + text
     return QUrl(text)
 

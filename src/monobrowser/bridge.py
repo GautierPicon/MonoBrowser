@@ -6,7 +6,7 @@ from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
 from monobrowser import utils
 from monobrowser.about_pages import newtab_html, settings_html, version_html
 
-Property = getattr(QtCore, "pyqtProperty")
+pyqtProperty = getattr(QtCore, "pyqtProperty")
 
 
 class Bridge(QObject):
@@ -16,7 +16,7 @@ class Bridge(QObject):
         super().__init__(parent)
         self._search_engine = utils.DEFAULT_SEARCH_ENGINE
 
-    @Property(str, notify=searchEngineChanged)
+    @pyqtProperty(str, notify=searchEngineChanged)
     def searchEngine(self) -> str:
         return self._search_engine
 
@@ -26,7 +26,7 @@ class Bridge(QObject):
             self._search_engine = name
             self.searchEngineChanged.emit()
 
-    @Property(str)
+    @pyqtProperty(str)
     def version(self) -> str:
         return utils.get_version()
 
@@ -55,5 +55,5 @@ class Bridge(QObject):
         return settings_html(self._search_engine)
 
     @pyqtSlot(result="QString")
-    def aboutHtml(self) -> str:
+    def versionHtml(self) -> str:
         return version_html()

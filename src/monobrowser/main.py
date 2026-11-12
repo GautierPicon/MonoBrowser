@@ -8,9 +8,9 @@ from PyQt6.QtQml import QQmlApplicationEngine
 
 from monobrowser.bridge import Bridge
 from monobrowser.titlebar import attach
-from monobrowser.utils import ICON_PATH, _is_bundled, get_version, qml_path
+from monobrowser.utils import ICON_PATH, get_version, is_bundled, qml_path
 
-QML_DIR = qml_path("").parent
+QML_DIR = qml_path("")
 
 
 def main():
@@ -19,13 +19,18 @@ def main():
     app = QGuiApplication(sys.argv)
     app.setApplicationName("MonoBrowser")
     app.setApplicationVersion(get_version())
-    if not _is_bundled():
+    if not is_bundled():
         app.setWindowIcon(QIcon(str(ICON_PATH)))
 
-    signal.signal(signal.SIGINT, lambda *_: app.quit())
     signalWakeup = QTimer()
     signalWakeup.timeout.connect(lambda: None)
     signalWakeup.start(200)
+
+    def handleSigint(*_):
+        signalWakeup.stop()
+        app.quit()
+
+    signal.signal(signal.SIGINT, handleSigint)
 
     engine = QQmlApplicationEngine()
     engine.warnings.connect(

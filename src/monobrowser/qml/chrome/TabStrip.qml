@@ -17,11 +17,6 @@ Item {
 
     implicitHeight: 40
 
-    Rectangle {
-        anchors.fill: parent
-        color: "transparent"
-    }
-
     Row {
         id: strip
         anchors.left: parent.left

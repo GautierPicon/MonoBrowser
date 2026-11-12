@@ -8,6 +8,10 @@ Item {
 
     property var windowRef: null
 
+    readonly property int menuPadding: 20
+    readonly property int menuWidth: 200
+    readonly property int menuMinHeight: 40
+
     implicitWidth: 28
     implicitHeight: 28
 
@@ -41,24 +45,24 @@ Item {
 
         popupType: Popup.Window
         margins: 0
-        leftInset: -20
-        topInset: -20
-        rightInset: -20
-        bottomInset: -20
+        leftInset: -root.menuPadding
+        topInset: -root.menuPadding
+        rightInset: -root.menuPadding
+        bottomInset: -root.menuPadding
         padding: 5
 
         background: Item {
-            implicitWidth: 200 - rootMenu.leftInset - rootMenu.rightInset
-            implicitHeight: 40 - rootMenu.topInset - rootMenu.bottomInset
+            implicitWidth: root.menuWidth + 2 * root.menuPadding
+            implicitHeight: root.menuMinHeight + 2 * root.menuPadding
 
             MultiEffect {
-                x: -rootMenu.leftInset
-                y: -rootMenu.topInset
+                x: root.menuPadding
+                y: root.menuPadding
                 width: source.width
                 height: source.height
                 source: Rectangle {
-                    width: rootMenu.background.width + rootMenu.leftInset + rootMenu.rightInset
-                    height: rootMenu.background.height + rootMenu.topInset + rootMenu.bottomInset
+                    width: rootMenu.background.width - 2 * root.menuPadding
+                    height: rootMenu.background.height - 2 * root.menuPadding
                     radius: 10
                     color: Theme.menuBg
                     border.width: 1
