@@ -46,6 +46,7 @@ Item {
                 anchors.bottom: parent.bottom
                 tabModel: root.tabModel
                 currentIndex: root.currentIndex
+                bridge: root.bridge
                 onTabClicked: function (index) { root.tabClicked(index) }
                 onTabClosed: function (index) { root.tabClosed(index) }
                 onNewTabRequested: root.newTabRequested()

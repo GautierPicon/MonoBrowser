@@ -8,6 +8,7 @@ Item {
 
     property var tabModel: null
     property int currentIndex: -1
+    property var bridge: null
 
     signal tabClicked(int index)
     signal tabClosed(int index)
@@ -99,11 +100,12 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     color: closeHover.hovered ? Theme.closeHoverBg : "transparent"
 
-                    Text {
+                    IconImage {
                         anchors.centerIn: parent
-                        text: "✕"
-                        font.pixelSize: 11
+                        bridge: root.bridge
+                        iconName: "tabs/close.svg"
                         color: Theme.closeGlyph
+                        size: 14
                     }
 
                     HoverHandler { id: closeHover; cursorShape: Qt.PointingHandCursor }
@@ -133,11 +135,12 @@ Item {
         anchors.leftMargin: 6
         color: newTabHover.hovered ? Theme.newtabHover : "transparent"
 
-        Text {
+        IconImage {
             anchors.centerIn: parent
-            text: "+"
-            font.pixelSize: 18
+            bridge: root.bridge
+            iconName: "tabs/new.svg"
             color: newTabHover.hovered ? Theme.textActive : Theme.textInactive
+            size: 16
         }
 
         HoverHandler { id: newTabHover; cursorShape: Qt.PointingHandCursor }
