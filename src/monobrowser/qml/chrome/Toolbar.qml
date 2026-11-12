@@ -12,8 +12,7 @@ RowLayout {
     property string address: ""
     property bool editing: false
     property bool certificateError: false
-    property url secureIcon: ""
-    property url insecureIcon: ""
+    property var bridge: null
 
     readonly property bool secure: !certificateError && address.indexOf("https://") === 0
     readonly property bool insecure: certificateError || address.indexOf("http://") === 0
@@ -58,20 +57,24 @@ RowLayout {
 
     NavButton {
         enabled: root.canGoBack
-        glyph: "←"
+        iconName: "nav/back.svg"
+        bridge: root.bridge
         tip: "Back"
         onClicked: root.backRequested()
     }
 
     NavButton {
         enabled: root.canGoForward
-        glyph: "→"
+        iconName: "nav/forward.svg"
+        bridge: root.bridge
         tip: "Forward"
         onClicked: root.forwardRequested()
     }
 
     NavButton {
-        glyph: root.loading ? "✕" : "⟳"
+        iconName: root.loading ? "" : "nav/reload.svg"
+        glyph: root.loading ? "✕" : ""
+        bridge: root.bridge
         tip: root.loading ? "Stop" : "Reload"
         onClicked: root.loading ? root.stopRequested() : root.reloadRequested()
     }
@@ -90,30 +93,26 @@ RowLayout {
             ColorAnimation { duration: 120 }
         }
 
-        Item {
-            id: securityIcon
-            width: 13
-            height: 14
+        IconImage {
             anchors.left: parent.left
             anchors.leftMargin: 8
             anchors.verticalCenter: parent.verticalCenter
-            visible: root.secure || root.insecure
+            visible: root.secure
+            bridge: root.bridge
+            iconName: "lock/lock.svg"
+            color: Theme.textInactive
+            size: 14
+        }
 
-            Image {
-                anchors.fill: parent
-                visible: root.secure
-                source: root.secureIcon
-                sourceSize: Qt.size(13, 14)
-                fillMode: Image.PreserveAspectFit
-            }
-
-            Image {
-                anchors.fill: parent
-                visible: root.insecure
-                source: root.insecureIcon
-                sourceSize: Qt.size(13, 14)
-                fillMode: Image.PreserveAspectFit
-            }
+        IconImage {
+            anchors.left: parent.left
+            anchors.leftMargin: 8
+            anchors.verticalCenter: parent.verticalCenter
+            visible: root.insecure
+            bridge: root.bridge
+            iconName: "lock/lock-open.svg"
+            color: "#E00000"
+            size: 14
         }
 
         TextField {

@@ -73,8 +73,7 @@ Item {
                 anchors.leftMargin: 6
                 anchors.rightMargin: 6
                 address: root.address
-                secureIcon: root.bridge.iconUrl("lock/lock.svg", Theme.textInactive)
-                insecureIcon: root.bridge.iconUrl("lock/lock-open.svg", "#E00000")
+                bridge: root.bridge
                 onBackRequested: root.backRequested()
                 onForwardRequested: root.forwardRequested()
                 onReloadRequested: root.reloadRequested()
