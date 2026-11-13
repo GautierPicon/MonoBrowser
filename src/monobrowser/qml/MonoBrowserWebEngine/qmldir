@@ -1,0 +1,4 @@
+module MonoBrowserWebEngine
+Menu 1.0 Menu.qml
+MenuItem 1.0 MenuItem.qml
+MenuSeparator 1.0 MenuSeparator.qml

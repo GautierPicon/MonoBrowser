@@ -15,6 +15,7 @@ QML_DIR = qml_path("")
 
 def main():
     os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "Basic")
+    os.environ.setdefault("QTWEBENGINE_UI_DELEGATE_MODULE", "MonoBrowserWebEngine")
 
     app = QGuiApplication(sys.argv)
     app.setApplicationName("MonoBrowser")
