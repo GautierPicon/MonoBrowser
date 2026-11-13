@@ -20,3 +20,4 @@ wheels/
 
 # Generated iconset
 src/assets/icon.iconset/
+.DS_Store
