@@ -129,6 +129,12 @@ Item {
             onTriggered: root.windowRef.addTab()
         }
         Entry {
+            text: "Reopen Closed Tab"
+            shortcut: "⌘⇧T"
+            enabled: root.windowRef !== null && root.windowRef.closedCount > 0
+            onTriggered: root.windowRef.reopenClosedTab()
+        }
+        Entry {
             text: root.pipActive ? "Exit Picture in Picture" : "Picture in Picture"
             shortcut: "⌘⇧P"
             onTriggered: root.windowRef.togglePip()

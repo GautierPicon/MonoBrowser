@@ -32,6 +32,8 @@ Window {
     property var bridge: null
     property var pipView: null
     property bool canPip: false
+    property var closedTabs: []
+    property int closedCount: 0
 
     readonly property var currentView:
         currentIndex >= 0 && currentIndex < views.length ? views[currentIndex] : null
@@ -148,6 +150,13 @@ Window {
         })
     }
 
+    function reindexViews() {
+        for (let i = 0; i < views.length; ++i) {
+            if (views[i])
+                views[i].tabIndex = i
+        }
+    }
+
     function setRole(index, role, value) {
         if (index < 0 || index >= tabs.count)
             return
@@ -158,24 +167,25 @@ Window {
         tabs.setProperty(index, role, value)
     }
 
-    function addTab(url) {
+    function addTab(url, atIndex) {
         var view = createView()
         if (!view)
             return -1
-        views.push(view)
         var target = url !== undefined && url !== null ? url : ""
-        tabs.append({
+        var index = atIndex === undefined ? tabs.count : Math.max(0, Math.min(atIndex, tabs.count))
+        views.splice(index, 0, view)
+        tabs.insert(index, {
             title: "New Tab",
             url: target,
             favicon: ""
         })
-        var index = tabs.count - 1
+        reindexViews()
         if (target !== "")
             view.url = target
         else
             view.loadHtml(bridge.newtabHtml(), "about:newtab")
         setCurrentIndex(index)
-        if (index > 0)
+        if (target === "" && index > 0)
             focusAddress()
         return index
     }
@@ -351,15 +361,22 @@ Window {
         var view = views[index]
         if (view !== null && view === pipView)
             exitPip()
+        var closedUrl = view !== null ? String(view.url) : ""
+        if (view !== null && closedUrl !== "" && closedUrl.indexOf("about:") !== 0) {
+            closedTabs.push({
+                title: view.title !== "" ? view.title : closedUrl,
+                url: closedUrl,
+                index: index
+            })
+            if (closedTabs.length > 20)
+                closedTabs.shift()
+            closedCount = closedTabs.length
+        }
         tabs.remove(index)
         views.splice(index, 1)
         if (view)
             view.destroy()
-
-        for (let i = index; i < views.length; ++i) {
-            if (views[i])
-                views[i].tabIndex = i
-        }
+        reindexViews()
 
         if (index < previous)
             setCurrentIndex(previous - 1)
@@ -387,6 +404,14 @@ Window {
         if (view)
             view.zoomFactor = 1.0
         chrome.zoomHud.show(100)
+    }
+
+    function reopenClosedTab() {
+        if (closedTabs.length === 0)
+            return
+        var item = closedTabs.pop()
+        closedCount = closedTabs.length
+        addTab(item.url, item.index)
     }
 
     function navigate(text) {
@@ -440,6 +465,7 @@ Window {
     Shortcut { sequences: ["Ctrl+,"]; onActivated: window.openAbout("settings") }
     Shortcut { sequences: ["Ctrl+R"]; onActivated: if (window.currentView) window.currentView.reload() }
     Shortcut { sequences: ["Ctrl+Shift+P"]; onActivated: window.togglePip() }
+    Shortcut { sequences: ["Ctrl+Shift+T"]; onActivated: window.reopenClosedTab() }
     Shortcut { sequences: ["Ctrl+=", "Ctrl+Plus"]; onActivated: window.zoomChange(0.1) }
     Shortcut { sequences: ["Ctrl+-", "Ctrl+Minus"]; onActivated: window.zoomChange(-0.1) }
     Shortcut { sequences: ["Ctrl+0"]; onActivated: window.zoomReset() }
