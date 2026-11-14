@@ -20,6 +20,7 @@ Item {
     readonly property var loadingBar: loadingBarItem
     readonly property var linkBar: linkBarItem
     readonly property var findBar: findBarItem
+    readonly property var zoomHud: zoomHudItem
 
     signal tabClicked(int index)
     signal tabClosed(int index)
@@ -156,6 +157,46 @@ Item {
                 anchors.right: parent.right
                 anchors.rightMargin: 12
                 windowRef: root.windowRef
+            }
+
+            Rectangle {
+                id: zoomHudItem
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 36
+                width: hudLabel.implicitWidth + 28
+                height: 30
+                radius: 15
+                z: 60
+                opacity: 0
+                visible: opacity > 0
+                color: Theme.menuBg
+                border.width: 1
+                border.color: Theme.menuBorder
+
+                Behavior on opacity {
+                    NumberAnimation { duration: 150 }
+                }
+
+                Text {
+                    id: hudLabel
+                    anchors.centerIn: parent
+                    text: "100%"
+                    font.pixelSize: 13
+                    color: Theme.menuText
+                }
+
+                Timer {
+                    id: hudTimer
+                    interval: 1000
+                    onTriggered: zoomHudItem.opacity = 0
+                }
+
+                function show(percent) {
+                    hudLabel.text = percent + "%"
+                    zoomHudItem.opacity = 1
+                    hudTimer.restart()
+                }
             }
         }
     }

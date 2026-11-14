@@ -371,6 +371,24 @@ Window {
         navBar.focusAddress()
     }
 
+    function zoomChange(step) {
+        var view = currentView
+        if (!view)
+            return
+        var factor = Math.round((view.zoomFactor + step) * 10) / 10
+        factor = Math.min(3.0, Math.max(0.3, factor))
+        if (view.zoomFactor !== factor)
+            view.zoomFactor = factor
+        chrome.zoomHud.show(Math.round(factor * 100))
+    }
+
+    function zoomReset() {
+        var view = currentView
+        if (view)
+            view.zoomFactor = 1.0
+        chrome.zoomHud.show(100)
+    }
+
     function navigate(text) {
         var target = currentView
         if (!target || text === "")
@@ -422,6 +440,9 @@ Window {
     Shortcut { sequences: ["Ctrl+,"]; onActivated: window.openAbout("settings") }
     Shortcut { sequences: ["Ctrl+R"]; onActivated: if (window.currentView) window.currentView.reload() }
     Shortcut { sequences: ["Ctrl+Shift+P"]; onActivated: window.togglePip() }
+    Shortcut { sequences: ["Ctrl+=", "Ctrl+Plus"]; onActivated: window.zoomChange(0.1) }
+    Shortcut { sequences: ["Ctrl+-", "Ctrl+Minus"]; onActivated: window.zoomChange(-0.1) }
+    Shortcut { sequences: ["Ctrl+0"]; onActivated: window.zoomReset() }
     Shortcut { sequences: ["Escape"]; onActivated: if (window.findBar.visible) window.findBar.close(); else if (window.currentView) window.currentView.stop() }
     Shortcut { sequences: ["Ctrl+F"]; onActivated: window.findBar.toggle() }
 
