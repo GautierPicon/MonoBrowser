@@ -312,6 +312,8 @@ Window {
         if (index < 0 || index >= tabs.count)
             return
         linkBar.target = ""
+        if (findBar.visible)
+            findBar.close()
         currentIndex = index
         updateVisibility()
         var current = currentView
@@ -411,6 +413,7 @@ Window {
     readonly property var navBar: chrome.navBar
     readonly property var loadingBar: chrome.loadingBar
     readonly property var linkBar: chrome.linkBar
+    readonly property var findBar: chrome.findBar
     readonly property Item contentArea: chrome.contentArea
 
     Shortcut { sequences: ["Ctrl+T"]; onActivated: window.addTab() }
@@ -419,7 +422,8 @@ Window {
     Shortcut { sequences: ["Ctrl+,"]; onActivated: window.openAbout("settings") }
     Shortcut { sequences: ["Ctrl+R"]; onActivated: if (window.currentView) window.currentView.reload() }
     Shortcut { sequences: ["Ctrl+Shift+P"]; onActivated: window.togglePip() }
-    Shortcut { sequences: ["Escape"]; onActivated: if (window.currentView) window.currentView.stop() }
+    Shortcut { sequences: ["Escape"]; onActivated: if (window.findBar.visible) window.findBar.close(); else if (window.currentView) window.currentView.stop() }
+    Shortcut { sequences: ["Ctrl+F"]; onActivated: window.findBar.toggle() }
 
     PipWindow {
         id: pipWindow

@@ -19,6 +19,7 @@ Item {
     readonly property var navBar: navBarItem
     readonly property var loadingBar: loadingBarItem
     readonly property var linkBar: linkBarItem
+    readonly property var findBar: findBarItem
 
     signal tabClicked(int index)
     signal tabClosed(int index)
@@ -146,6 +147,15 @@ Item {
                         color: Theme.textInactive
                     }
                 }
+            }
+
+            FindBar {
+                id: findBarItem
+                anchors.top: parent.top
+                anchors.topMargin: 10
+                anchors.right: parent.right
+                anchors.rightMargin: 12
+                windowRef: root.windowRef
             }
         }
     }
