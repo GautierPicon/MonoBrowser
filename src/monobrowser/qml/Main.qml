@@ -167,17 +167,20 @@ Window {
         }
     }
 
-    function addTab(url, atIndex) {
+    function addTab(url, atIndex, seed) {
         var view = createView()
         if (!view)
             return -1
         var target = url !== undefined && url !== null ? url : ""
         var index = atIndex === undefined ? tabs.count : Math.max(0, Math.min(atIndex, tabs.count))
+        var title = seed !== undefined && seed !== null && seed.title !== "" ? String(seed.title) : "New Tab"
+        var icon = seed !== undefined && seed !== null && seed.favicon !== undefined && seed.favicon !== null
+                   ? String(seed.favicon) : ""
         views.splice(index, 0, view)
         tabs.insert(index, {
-            title: "New Tab",
+            title: title,
             url: target,
-            favicon: "",
+            favicon: icon,
             loading: false
         })
         reindexViews()
@@ -368,7 +371,8 @@ Window {
             closedTabs.push({
                 title: view.title !== "" ? view.title : closedUrl,
                 url: closedUrl,
-                index: index
+                index: index,
+                favicon: view.icon !== undefined && view.icon !== null ? String(view.icon) : ""
             })
             if (closedTabs.length > 20)
                 closedTabs.shift()
@@ -424,7 +428,7 @@ Window {
             return
         var item = closedTabs.pop()
         closedCount = closedTabs.length
-        addTab(item.url, item.index)
+        addTab(item.url, item.index, item)
     }
 
     function zoomChange(step) {
