@@ -79,6 +79,52 @@
     letter-spacing: 0.3px;
   }
 
+  h2 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #000000;
+    margin: 40px 0 12px;
+    letter-spacing: -0.2px;
+  }
+
+  .shortcut-grid {
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 8px 40px;
+    min-width: 340px;
+    border: 1px solid #d2d2d7;
+    border-radius: 10px;
+    padding: 16px 20px;
+    background: #ffffff;
+    font-size: 13px;
+  }
+
+  .shortcut-grid .name {
+    color: #1d1d1f;
+  }
+
+  .shortcut-grid .keys {
+    text-align: right;
+    color: #6e6e73;
+  }
+
+  kbd {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 12px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: #e8e8ed;
+    border: 1px solid #d2d2d7;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    h2 { color: #ffffff; }
+    .shortcut-grid { background: #2c2c2e; border-color: #48484a; }
+    .shortcut-grid .name { color: #f5f5f7; }
+    .shortcut-grid .keys { color: #98989d; }
+    kbd { background: #3a3a3c; border-color: #48484a; }
+  }
+
   @media (prefers-color-scheme: dark) {
     .info-grid { background: #2c2c2e; border-color: #48484a; }
     .info-row { border-color: #3a3a3c; }
@@ -105,6 +151,24 @@
       <span class="info-label">Engine</span>
       <span class="info-value">QtWebEngine / Chromium</span>
     </div>
+  </div>
+
+  <h2>Keyboard Shortcuts</h2>
+  <div class="shortcut-grid">
+    <span class="name">New Tab</span><span class="keys"><kbd>⌘</kbd> + <kbd>T</kbd></span>
+    <span class="name">Close Tab</span><span class="keys"><kbd>⌘</kbd> + <kbd>W</kbd></span>
+    <span class="name">Focus Address Bar</span><span class="keys"><kbd>⌘</kbd> + <kbd>L</kbd></span>
+    <span class="name">Reload</span><span class="keys"><kbd>⌘</kbd> + <kbd>R</kbd></span>
+    <span class="name">Find in Page</span><span class="keys"><kbd>⌘</kbd> + <kbd>F</kbd></span>
+    <span class="name">Zoom In</span><span class="keys"><kbd>⌘</kbd> + <kbd>+</kbd></span>
+    <span class="name">Zoom Out</span><span class="keys"><kbd>⌘</kbd> + <kbd>−</kbd></span>
+    <span class="name">Reset Zoom</span><span class="keys"><kbd>⌘</kbd> + <kbd>0</kbd></span>
+    <span class="name">Previous Tab</span><span class="keys"><kbd>⌘</kbd> + <kbd>⇧</kbd> + <kbd>[</kbd></span>
+    <span class="name">Next Tab</span><span class="keys"><kbd>⌘</kbd> + <kbd>⇧</kbd> + <kbd>]</kbd></span>
+    <span class="name">Reopen Closed Tab</span><span class="keys"><kbd>⌘</kbd> + <kbd>⇧</kbd> + <kbd>T</kbd></span>
+    <span class="name">Picture in Picture</span><span class="keys"><kbd>⌘</kbd> + <kbd>⇧</kbd> + <kbd>P</kbd></span>
+    <span class="name">Settings</span><span class="keys"><kbd>⌘</kbd> + <kbd>,</kbd></span>
+    <span class="name">Stop Loading / Close Find</span><span class="keys"><kbd>Esc</kbd></span>
   </div>
 
 </body>

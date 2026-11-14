@@ -414,6 +414,12 @@ Window {
         addTab(item.url, item.index)
     }
 
+    function cycleTab(delta) {
+        if (tabs.count <= 1)
+            return
+        setCurrentIndex((currentIndex + delta + tabs.count) % tabs.count)
+    }
+
     function navigate(text) {
         var target = currentView
         if (!target || text === "")
@@ -471,6 +477,8 @@ Window {
     Shortcut { sequences: ["Ctrl+0"]; onActivated: window.zoomReset() }
     Shortcut { sequences: ["Escape"]; onActivated: if (window.findBar.visible) window.findBar.close(); else if (window.currentView) window.currentView.stop() }
     Shortcut { sequences: ["Ctrl+F"]; onActivated: window.findBar.toggle() }
+    Shortcut { sequences: ["Ctrl+Shift+BracketLeft"]; onActivated: window.cycleTab(-1) }
+    Shortcut { sequences: ["Ctrl+Shift+BracketRight"]; onActivated: window.cycleTab(1) }
 
     PipWindow {
         id: pipWindow
