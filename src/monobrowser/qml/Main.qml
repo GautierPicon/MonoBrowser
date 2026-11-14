@@ -150,21 +150,21 @@ Window {
         })
     }
 
+    function setRole(index, role, value) {
+        if (index < 0 || index >= tabs.count)
+            return
+        if (typeof value !== "string" && typeof value !== "boolean")
+            return
+        if (tabs.get(index)[role] === value)
+            return
+        tabs.setProperty(index, role, value)
+    }
+
     function reindexViews() {
         for (let i = 0; i < views.length; ++i) {
             if (views[i])
                 views[i].tabIndex = i
         }
-    }
-
-    function setRole(index, role, value) {
-        if (index < 0 || index >= tabs.count)
-            return
-        if (typeof value !== "string")
-            return
-        if (tabs.get(index)[role] === value)
-            return
-        tabs.setProperty(index, role, value)
     }
 
     function addTab(url, atIndex) {
@@ -177,7 +177,8 @@ Window {
         tabs.insert(index, {
             title: "New Tab",
             url: target,
-            favicon: ""
+            favicon: "",
+            loading: false
         })
         reindexViews()
         if (target !== "")
@@ -290,6 +291,7 @@ Window {
 
         setRole(index, "title", view.title !== "" ? view.title : "New Tab")
         setRole(index, "url", text)
+        setRole(index, "loading", view.loading)
         var icon = view.icon
         setRole(index, "favicon",
                 icon !== undefined && icon !== null ? String(icon) : "")
@@ -388,6 +390,43 @@ Window {
         navBar.focusAddress()
     }
 
+    function moveTab(from, to) {
+        if (from === to || from < 0 || to < 0 || from >= tabs.count || to >= tabs.count)
+            return
+        var view = views[from]
+        var items = []
+        for (let i = 0; i < tabs.count; ++i) {
+            var entry = tabs.get(i)
+            items.push({ title: entry.title, url: entry.url,
+                         favicon: entry.favicon, loading: entry.loading })
+        }
+        var moved = items.splice(from, 1)[0]
+        items.splice(to, 0, moved)
+        tabs.clear()
+        for (let j = 0; j < items.length; ++j)
+            tabs.append(items[j])
+        views.splice(from, 1)
+        views.splice(to, 0, view)
+        reindexViews()
+        var c = currentIndex
+        if (from === c)
+            c = to
+        else if (from < c && to >= c)
+            c = c - 1
+        else if (from > c && to <= c)
+            c = c + 1
+        if (c !== currentIndex)
+            setCurrentIndex(c)
+    }
+
+    function reopenClosedTab() {
+        if (closedTabs.length === 0)
+            return
+        var item = closedTabs.pop()
+        closedCount = closedTabs.length
+        addTab(item.url, item.index)
+    }
+
     function zoomChange(step) {
         var view = currentView
         if (!view)
@@ -404,14 +443,6 @@ Window {
         if (view)
             view.zoomFactor = 1.0
         chrome.zoomHud.show(100)
-    }
-
-    function reopenClosedTab() {
-        if (closedTabs.length === 0)
-            return
-        var item = closedTabs.pop()
-        closedCount = closedTabs.length
-        addTab(item.url, item.index)
     }
 
     function cycleTab(delta) {
@@ -448,6 +479,7 @@ Window {
         pipTitle: window.pipView !== null ? window.pipView.title : ""
         onTabClicked: function (index) { window.setCurrentIndex(index) }
         onTabClosed: function (index) { window.closeTab(index) }
+        onTabMoved: function (from, to) { window.moveTab(from, to) }
         onNewTabRequested: window.addTab()
         onBackgroundPressed: window.startSystemMove()
         onBackgroundDoubleClicked: window.toggleZoom()
@@ -471,14 +503,14 @@ Window {
     Shortcut { sequences: ["Ctrl+,"]; onActivated: window.openAbout("settings") }
     Shortcut { sequences: ["Ctrl+R"]; onActivated: if (window.currentView) window.currentView.reload() }
     Shortcut { sequences: ["Ctrl+Shift+P"]; onActivated: window.togglePip() }
-    Shortcut { sequences: ["Ctrl+Shift+T"]; onActivated: window.reopenClosedTab() }
-    Shortcut { sequences: ["Ctrl+=", "Ctrl+Plus"]; onActivated: window.zoomChange(0.1) }
-    Shortcut { sequences: ["Ctrl+-", "Ctrl+Minus"]; onActivated: window.zoomChange(-0.1) }
-    Shortcut { sequences: ["Ctrl+0"]; onActivated: window.zoomReset() }
     Shortcut { sequences: ["Escape"]; onActivated: if (window.findBar.visible) window.findBar.close(); else if (window.currentView) window.currentView.stop() }
     Shortcut { sequences: ["Ctrl+F"]; onActivated: window.findBar.toggle() }
     Shortcut { sequences: ["Ctrl+Shift+BracketLeft"]; onActivated: window.cycleTab(-1) }
     Shortcut { sequences: ["Ctrl+Shift+BracketRight"]; onActivated: window.cycleTab(1) }
+    Shortcut { sequences: ["Ctrl+Shift+T"]; onActivated: window.reopenClosedTab() }
+    Shortcut { sequences: ["Ctrl+=", "Ctrl+Plus"]; onActivated: window.zoomChange(0.1) }
+    Shortcut { sequences: ["Ctrl+-", "Ctrl+Minus"]; onActivated: window.zoomChange(-0.1) }
+    Shortcut { sequences: ["Ctrl+0"]; onActivated: window.zoomReset() }
 
     PipWindow {
         id: pipWindow

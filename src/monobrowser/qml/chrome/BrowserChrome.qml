@@ -24,6 +24,7 @@ Item {
 
     signal tabClicked(int index)
     signal tabClosed(int index)
+    signal tabMoved(int from, int to)
     signal newTabRequested()
     signal backgroundPressed()
     signal backgroundDoubleClicked()
@@ -48,7 +49,8 @@ Item {
                 id: tabstrip
                 anchors.left: parent.left
                 anchors.leftMargin: 78
-                anchors.right: parent.right
+                anchors.right: appMenu.left
+                anchors.rightMargin: 4
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
                 tabModel: root.tabModel
@@ -56,12 +58,14 @@ Item {
                 bridge: root.bridge
                 onTabClicked: function (index) { root.tabClicked(index) }
                 onTabClosed: function (index) { root.tabClosed(index) }
+                onTabMoved: function (from, to) { root.tabMoved(from, to) }
                 onNewTabRequested: root.newTabRequested()
                 onBackgroundPressed: root.backgroundPressed()
                 onBackgroundDoubleClicked: root.backgroundDoubleClicked()
             }
 
             AppMenu {
+                id: appMenu
                 anchors.right: parent.right
                 anchors.rightMargin: 8
                 anchors.verticalCenter: parent.verticalCenter
