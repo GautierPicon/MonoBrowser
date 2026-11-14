@@ -93,6 +93,7 @@ DEFAULT_SEARCH_ENGINE = "duckduckgo"
 
 INTERNAL_SEARCH_BASE = "https://monobrowser.internal/search?"
 INTERNAL_SET_SEARCH_BASE = "https://monobrowser.internal/set-search?"
+INTERNAL_RETRY_BASE = "https://monobrowser.internal/retry?url="
 
 
 def resolve_address_text(text: str, engine: str = DEFAULT_SEARCH_ENGINE) -> str:
@@ -112,4 +113,9 @@ def internal_url_action(url: str) -> tuple[str, str]:
     if url.startswith(INTERNAL_SEARCH_BASE):
         query = parse_qs(urlsplit(url).query).get("q", [""])[0].strip()
         return ("search", query)
+    if url.startswith(INTERNAL_RETRY_BASE):
+        target = parse_qs(urlsplit(url).query).get("url", [""])[0].strip()
+        if target:
+            return ("retry", target)
+        return ("", "")
     return ("", "")

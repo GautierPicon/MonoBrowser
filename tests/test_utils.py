@@ -1,6 +1,7 @@
 import base64
 import tomllib
 from pathlib import Path
+from urllib.parse import quote
 
 import pytest
 from PyQt6.QtCore import QUrl
@@ -111,6 +112,16 @@ def test_internal_url_action_search() -> None:
 
 def test_internal_url_action_other() -> None:
     assert internal_url_action("https://example.com/") == ("", "")
+
+
+def test_internal_url_action_retry() -> None:
+    target = "https://example.com/?a=b&c=d"
+    encoded = quote(target, safe="")
+    assert internal_url_action(f"https://monobrowser.internal/retry?url={encoded}") == (
+        "retry",
+        target,
+    )
+    assert internal_url_action("https://monobrowser.internal/retry?url=") == ("", "")
 
 
 def test_icon_data_url_replaces_current_color() -> None:

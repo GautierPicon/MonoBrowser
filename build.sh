@@ -29,6 +29,7 @@ uv run pyinstaller \
     --hidden-import PyQt6.QtWebChannel \
     --add-data "src/assets/icon.icns:." \
     --add-data "src/assets/icon.png:." \
+    --add-data "src/assets/globe.svg:." \
     --add-data "src/assets/lock:lock" \
     --add-data "src/assets/nav:nav" \
     --add-data "src/assets/tabs:tabs" \

@@ -22,3 +22,26 @@ def test_settings_html_marks_selected_engine() -> None:
     assert google.index('class="option selected"') != duckduckgo.index(
         'class="option selected"'
     )
+
+
+def test_error_html_escapes_url_and_reason() -> None:
+    url = 'https://example.com/<script>alert("x")</script>'
+    reason = 'Name not resolved & "host" <unknown>'
+    html = about_pages.error_html(url, reason)
+    assert "{{" not in html
+    assert url not in html
+    assert "&lt;script&gt;" in html
+    assert "&lt;unknown&gt;" in html
+    assert reason not in html
+    assert 'class="retry"' in html
+    assert utils.INTERNAL_RETRY_BASE in html
+
+
+def test_error_html_retry_link_roundtrips() -> None:
+    target = "https://example.com/?a=b&c=d"
+    html = about_pages.error_html(target, "")
+    marker = f'href="{utils.INTERNAL_RETRY_BASE}'
+    start = html.index(marker) + len(marker)
+    end = html.index('"', start)
+    retry_url = "https://monobrowser.internal/retry?url=" + html[start:end]
+    assert utils.internal_url_action(retry_url) == ("retry", target)

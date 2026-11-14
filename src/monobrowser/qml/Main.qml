@@ -200,6 +200,17 @@ Window {
                 view.openPending(views[index])
         })
         view.recentlyAudibleChanged.connect(function () { updateLifecycle(view) })
+        view.loadingChanged.connect(function (info) {
+            if (info.status !== WebEngineView.LoadFailedStatus)
+                return
+            var url = String(info.url)
+            if (url === "" || url.indexOf("about:") === 0
+                    || url.indexOf("https://monobrowser.internal") === 0)
+                return
+            if (info.errorCode === -3)
+                return
+            view.loadHtml(bridge.errorHtml(url, String(info.errorString)), url)
+        })
         view.certificateErrorChanged.connect(function () {
             if (view === currentView)
                 navBar.certificateError = view.certificateError
@@ -247,6 +258,12 @@ Window {
         var text = String(view.url)
         var action = bridge.internalAction(text)
 
+        if (action === "retry") {
+            var retryTarget = bridge.internalParam(text)
+            if (retryTarget !== "")
+                view.url = retryTarget
+            return
+        }
         if (action === "set-search") {
             bridge.searchEngine = bridge.internalParam(text)
             loadAbout(view, "settings")

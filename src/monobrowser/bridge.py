@@ -4,7 +4,7 @@ import PyQt6.QtCore as QtCore
 from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
 
 from monobrowser import utils
-from monobrowser.about_pages import newtab_html, settings_html, version_html
+from monobrowser.about_pages import error_html, newtab_html, settings_html, version_html
 
 pyqtProperty = getattr(QtCore, "pyqtProperty")
 
@@ -45,6 +45,10 @@ class Bridge(QObject):
     @pyqtSlot(str, result="QString")
     def internalParam(self, url: str) -> str:
         return utils.internal_url_action(url)[1]
+
+    @pyqtSlot(str, str, result="QString")
+    def errorHtml(self, url: str, reason: str) -> str:
+        return error_html(url, reason)
 
     @pyqtSlot(result="QString")
     def newtabHtml(self) -> str:
