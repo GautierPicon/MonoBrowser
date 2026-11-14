@@ -506,6 +506,8 @@ Window {
     Shortcut { sequences: ["Ctrl+L"]; onActivated: window.focusAddress() }
     Shortcut { sequences: ["Ctrl+,"]; onActivated: window.openAbout("settings") }
     Shortcut { sequences: ["Ctrl+R"]; onActivated: if (window.currentView) window.currentView.reload() }
+    Shortcut { sequences: ["Ctrl+Alt+Left"]; onActivated: window.cycleTab(-1) }
+    Shortcut { sequences: ["Ctrl+Alt+Right"]; onActivated: window.cycleTab(1) }
     Shortcut { sequences: ["Ctrl+Shift+P"]; onActivated: window.togglePip() }
     Shortcut { sequences: ["Escape"]; onActivated: if (window.findBar.visible) window.findBar.close(); else if (window.currentView) window.currentView.stop() }
     Shortcut { sequences: ["Ctrl+F"]; onActivated: window.findBar.toggle() }
