@@ -146,7 +146,7 @@ WebEngineView {
     function openPending(target) {
         if (pendingRequest === null || target === null)
             return
-        pendingRequest.openInWebEngineView(target)
+        pendingRequest.openIn(target)
         pendingRequest = null
     }
 }
