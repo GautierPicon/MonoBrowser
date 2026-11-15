@@ -115,6 +115,11 @@ Item {
 
                     readonly property bool isCurrent: index === root.currentIndex
 
+                    readonly property string faviconOrigin: {
+                        var m = url.match(/^((?:https?|ftp):\/\/[^/]+)/)
+                        return m ? m[1] : ""
+                    }
+
                     width: root.tabWidth
                     height: 38
                     z: dragHandler.active ? 100 : 0
@@ -181,8 +186,13 @@ Item {
                                 source: tabDelegate.favicon
                                 asynchronous: true
                                 fillMode: Image.PreserveAspectFit
-                                onStatusChanged: if (status === Image.Error)
-                                                     root.faviconError(tabDelegate.index)
+                                onStatusChanged: if (status === Image.Error) {
+                                                    if (tabDelegate.faviconOrigin !== ""
+                                                            && source.toString().indexOf(tabDelegate.faviconOrigin + "/favicon.ico") !== 0)
+                                                        source = tabDelegate.faviconOrigin + "/favicon.ico"
+                                                    else
+                                                        root.faviconError(tabDelegate.index)
+                                                }
                             }
 
                             IconImage {
