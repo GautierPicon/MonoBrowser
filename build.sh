@@ -32,6 +32,7 @@ uv run pyinstaller \
     --add-data "src/assets/globe.svg:." \
     --add-data "src/assets/mono.svg:." \
     --add-data "src/assets/appearance:appearance" \
+    --add-data "src/assets/adblock:adblock" \
     --add-data "src/assets/lock:lock" \
     --add-data "src/assets/nav:nav" \
     --add-data "src/assets/tabs:tabs" \

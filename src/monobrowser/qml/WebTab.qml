@@ -7,6 +7,27 @@ WebEngineView {
     property int tabIndex: -1
     property var pendingRequest: null
     property bool certificateError: false
+    property bool cosmeticCss: false
+
+    readonly property string adblockCosmeticSource:
+        "(function () { if (document.getElementById('adblock-cosmetic-style')) { return; } var s = document.createElement('style'); s.id = 'adblock-cosmetic-style'; var c = 'iframe[src*=doubleclick.net],iframe[src*=googlesyndication.com],iframe[src*=googleadservices.com],iframe[src*=adservice.google.com],iframe[src*=amazon-adsystem.com],iframe[src*=adnxs.com],iframe[src*=taboola.com],iframe[src*=outbrain.com],ins.adsbygoogle,iframe[id^=aswift],iframe[id^=google_ads],div[id^=div-gpt-ad],div[id^=google_ad]'; s.textContent = c + '{display:none !important}'; (document.head || document.documentElement).appendChild(s); })()"
+
+    function updateUserScripts() {
+        if (!view.cosmeticCss) {
+            view.userScripts.collection = []
+            return
+        }
+        view.userScripts.collection = [{
+            name: "adblock-cosmetic-css",
+            injectionPoint: WebEngineScript.DocumentReady,
+            worldId: WebEngineScript.ApplicationWorld,
+            runsOnSubFrames: true,
+            sourceCode: view.adblockCosmeticSource
+        }]
+    }
+
+    onCosmeticCssChanged: updateUserScripts()
+    Component.onCompleted: updateUserScripts()
 
     signal pageChanged()
     signal progressChanged()

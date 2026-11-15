@@ -90,7 +90,15 @@ def newtab_html(theme: str = "system") -> str:
     )
 
 
-def settings_html(engine: str, restore: bool = True, theme: str = "system") -> str:
+def settings_html(
+    engine: str,
+    restore: bool = True,
+    theme: str = "system",
+    adblock: bool = True,
+    adblock_cosmetic: bool = False,
+) -> str:
+    from monobrowser import adblock as adblock_module
+
     effective = _effective_theme(theme)
     html = SETTINGS_HTML_PATH.read_text(encoding="utf-8")
     html = html.replace("{{THEME_ATTR}}", _theme_attr(effective))
@@ -101,6 +109,15 @@ def settings_html(engine: str, restore: bool = True, theme: str = "system") -> s
         "{{#duckduckgo}}", " selected" if engine == "duckduckgo" else ""
     )
     html = html.replace("{{#restore}}", " selected" if restore else "")
+    html = html.replace("{{#adblock}}", " on" if adblock else "")
+    html = html.replace("{{ADBLOCK_ARIA}}", "true" if adblock else "false")
+    html = html.replace("{{BLOCKED_COUNT}}", str(adblock_module.blocked_count()))
+    html = html.replace("{{#cosmetic}}", " on" if adblock_cosmetic else "")
+    html = html.replace(
+        "{{COSMETIC_LABEL}}", "Enabled" if adblock_cosmetic else "Disabled"
+    )
+    count = len(adblock_module.blocked_domains())
+    html = html.replace("{{ADBLOCK_COUNT}}", f"{count:,}".replace(",", " "))
     for mode in ("system", "light", "dark"):
         html = html.replace(f"{{{{#{mode}}}}}", " selected" if theme == mode else "")
     html = html.replace("{{ICON_SYSTEM}}", _appearance_icon("system"))

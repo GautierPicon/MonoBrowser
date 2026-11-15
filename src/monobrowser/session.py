@@ -9,6 +9,8 @@ APP = "MonoBrowser"
 STATE_KEY = "session"
 RESTORE_KEY = "restore_session"
 THEME_KEY = "theme_mode"
+ADBLOCK_KEY = "adblock_enabled"
+ADBLOCK_COSMETIC_KEY = "adblock_cosmetic"
 THEME_MODES = ("system", "light", "dark")
 MAX_URLS = 50
 MAX_URL_LENGTH = 4096
@@ -21,14 +23,7 @@ def _settings() -> QSettings:
 
 
 def restore_enabled() -> bool:
-    value: Any = _settings().value(RESTORE_KEY, True)
-    if isinstance(value, bool):
-        return value
-    if isinstance(value, str):
-        return value.strip().lower() in ("1", "true", "yes", "on")
-    if isinstance(value, (int, float)):
-        return value != 0
-    return bool(value)
+    return _bool_flag(_settings().value(RESTORE_KEY, True), True)
 
 
 def set_restore_enabled(enabled: bool) -> None:
@@ -86,6 +81,32 @@ def _validate(state: Any) -> dict[str, Any] | None:
                 "maximized": bool(geo.get("maximized", False)),
             }
     return {"urls": clean_urls, "current_index": index, "geometry": geometry}
+
+
+def _bool_flag(value: Any, default: bool) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in ("1", "true", "yes", "on")
+    if isinstance(value, (int, float)):
+        return value != 0
+    return default
+
+
+def adblock_enabled() -> bool:
+    return _bool_flag(_settings().value(ADBLOCK_KEY, True), True)
+
+
+def set_adblock_enabled(enabled: bool) -> None:
+    _settings().setValue(ADBLOCK_KEY, bool(enabled))
+
+
+def adblock_cosmetic() -> bool:
+    return _bool_flag(_settings().value(ADBLOCK_COSMETIC_KEY, False), False)
+
+
+def set_adblock_cosmetic(enabled: bool) -> None:
+    _settings().setValue(ADBLOCK_COSMETIC_KEY, bool(enabled))
 
 
 def theme_mode() -> str:
