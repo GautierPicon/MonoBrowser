@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"{{THEME_ATTR}}>
 <head>
 <link rel="icon" href="{{FAVICON}}">
 <meta charset="utf-8">
@@ -121,21 +121,16 @@
     padding: 0 2px;
   }
 
-  @media (prefers-color-scheme: dark) {
-    h2 { color: #ffffff; }
-    .shortcut-grid { background: #2c2c2e; border-color: #48484a; }
-    .shortcut-grid .name { color: #f5f5f7; }
-    .shortcut-grid .keys { color: #98989d; }
-    kbd { background: #3a3a3c; border-color: #48484a; }
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .info-grid { background: #2c2c2e; border-color: #48484a; }
-    .info-row { border-color: #3a3a3c; }
-    .info-label { color: #98989d; }
-    .info-value { color: #f5f5f7; }
-    .footer { color: #98989d; }
-  }
+  .theme-dark h2 { color: #ffffff; }
+  .theme-dark .shortcut-grid { background: #2c2c2e; border-color: #48484a; }
+  .theme-dark .shortcut-grid .name { color: #f5f5f7; }
+  .theme-dark .shortcut-grid .keys { color: #98989d; }
+  .theme-dark kbd { background: #3a3a3c; border-color: #48484a; }
+  .theme-dark .info-grid { background: #2c2c2e; border-color: #48484a; }
+  .theme-dark .info-row { border-color: #3a3a3c; }
+  .theme-dark .info-label { color: #98989d; }
+  .theme-dark .info-value { color: #f5f5f7; }
+  .theme-dark .footer { color: #98989d; }
 </style>
 </head>
 <body>

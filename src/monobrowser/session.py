@@ -8,6 +8,8 @@ ORG = "MonoBrowser"
 APP = "MonoBrowser"
 STATE_KEY = "session"
 RESTORE_KEY = "restore_session"
+THEME_KEY = "theme_mode"
+THEME_MODES = ("system", "light", "dark")
 MAX_URLS = 50
 MAX_URL_LENGTH = 4096
 MIN_WIDTH = 480
@@ -84,6 +86,18 @@ def _validate(state: Any) -> dict[str, Any] | None:
                 "maximized": bool(geo.get("maximized", False)),
             }
     return {"urls": clean_urls, "current_index": index, "geometry": geometry}
+
+
+def theme_mode() -> str:
+    value: Any = _settings().value(THEME_KEY, "system")
+    mode = value.strip().lower() if isinstance(value, str) else "system"
+    return mode if mode in THEME_MODES else "system"
+
+
+def set_theme_mode(mode: str) -> None:
+    mode = mode.strip().lower()
+    if mode in THEME_MODES:
+        _settings().setValue(THEME_KEY, mode)
 
 
 def load_state() -> dict[str, Any] | None:

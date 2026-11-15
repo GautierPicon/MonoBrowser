@@ -144,3 +144,20 @@ def test_save_session_slot_arity_matches_qml_call() -> None:
     ]
     assert len(slots) == 1
     assert slots[0].parameterCount() == 7
+
+
+def test_theme_mode_defaults_to_system(store: QSettings) -> None:
+    assert session.theme_mode() == "system"
+
+
+def test_theme_mode_roundtrip(store: QSettings) -> None:
+    for mode in ("light", "dark", "system"):
+        session.set_theme_mode(mode)
+        assert session.theme_mode() == mode
+
+
+def test_theme_mode_invalid_falls_back_to_system(store: QSettings) -> None:
+    store.setValue(session.THEME_KEY, "banana")
+    assert session.theme_mode() == "system"
+    session.set_theme_mode("banana")
+    assert session.theme_mode() == "system"

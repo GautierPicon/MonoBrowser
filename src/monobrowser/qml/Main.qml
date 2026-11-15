@@ -336,6 +336,11 @@ Window {
             loadAbout(view, "settings")
             return
         }
+        if (action === "set-theme") {
+            bridge.themeMode = bridge.internalParam(text)
+            loadAbout(view, "settings")
+            return
+        }
         if (action === "search") {
             const query = bridge.internalParam(text)
             if (query !== "")
@@ -571,6 +576,37 @@ Window {
     Shortcut { sequences: ["Ctrl+-", "Ctrl+Minus"]; onActivated: window.zoomChange(-0.1) }
     Shortcut { sequences: ["Ctrl+0"]; onActivated: window.zoomReset() }
 
+    function reloadAboutPages() {
+        for (var i = 0; i < views.length; ++i) {
+            var view = views[i]
+            if (!view)
+                continue
+            var u = String(view.url)
+            if (u === "about:settings")
+                loadAbout(view, "settings")
+            else if (u === "about:version")
+                loadAbout(view, "version")
+            else if (u === "about:newtab")
+                loadAbout(view, "newtab")
+        }
+    }
+
+    Connections {
+        target: window.bridge
+        function onThemeModeChanged() {
+            Theme.mode = window.bridge.themeMode
+            window.reloadAboutPages()
+        }
+    }
+
+    Connections {
+        target: Qt.styleHints
+        function onColorSchemeChanged() { // qmllint disable missing-property
+            if (window.bridge && window.bridge.themeMode === "system")
+                window.reloadAboutPages()
+        }
+    }
+
     PipWindow {
         id: pipWindow
         bridge: window.bridge
@@ -597,5 +633,9 @@ Window {
         window.saveSessionState()
     }
 
-    Component.onCompleted: restoreSessionOrNewTab()
+    Component.onCompleted: {
+        if (bridge)
+            Theme.mode = bridge.themeMode
+        restoreSessionOrNewTab()
+    }
 }

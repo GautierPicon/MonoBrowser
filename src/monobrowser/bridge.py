@@ -14,6 +14,7 @@ pyqtProperty = getattr(QtCore, "pyqtProperty")
 class Bridge(QObject):
     searchEngineChanged = pyqtSignal()
     restoreSessionChanged = pyqtSignal()
+    themeModeChanged = pyqtSignal()
 
     def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
@@ -40,6 +41,17 @@ class Bridge(QObject):
             session.set_restore_enabled(enabled)
             self.restoreSessionChanged.emit()
 
+    @pyqtProperty(str, notify=themeModeChanged)
+    def themeMode(self) -> str:
+        return session.theme_mode()
+
+    @themeMode.setter  # type: ignore[no-redef]
+    def themeMode(self, mode: str) -> None:
+        mode = mode.strip().lower()
+        if mode in session.THEME_MODES and mode != session.theme_mode():
+            session.set_theme_mode(mode)
+            self.themeModeChanged.emit()
+
     @pyqtProperty(str)
     def version(self) -> str:
         return utils.get_version()
@@ -62,19 +74,21 @@ class Bridge(QObject):
 
     @pyqtSlot(str, str, result="QString")
     def errorHtml(self, url: str, reason: str) -> str:
-        return error_html(url, reason)
+        return error_html(url, reason, session.theme_mode())
 
     @pyqtSlot(result="QString")
     def newtabHtml(self) -> str:
-        return newtab_html()
+        return newtab_html(session.theme_mode())
 
     @pyqtSlot(result="QString")
     def settingsHtml(self) -> str:
-        return settings_html(self._search_engine, session.restore_enabled())
+        return settings_html(
+            self._search_engine, session.restore_enabled(), session.theme_mode()
+        )
 
     @pyqtSlot(result="QString")
     def versionHtml(self) -> str:
-        return version_html()
+        return version_html(session.theme_mode())
 
     @pyqtSlot(result="QVariant")
     def loadSessionState(self) -> dict[str, Any]:

@@ -130,3 +130,23 @@ def test_icon_data_url_replaces_current_color() -> None:
     svg = base64.b64decode(url.split(",", 1)[1]).decode()
     assert "#123456" in svg
     assert "currentColor" not in svg
+
+
+def test_internal_url_action_set_theme() -> None:
+    assert internal_url_action("https://monobrowser.internal/set-theme?light") == (
+        "set-theme",
+        "light",
+    )
+    assert internal_url_action("https://monobrowser.internal/set-theme?dark") == (
+        "set-theme",
+        "dark",
+    )
+    assert internal_url_action("https://monobrowser.internal/set-theme?system") == (
+        "set-theme",
+        "system",
+    )
+    assert internal_url_action("https://monobrowser.internal/set-theme?banana") == (
+        "",
+        "",
+    )
+    assert internal_url_action("https://monobrowser.internal/set-theme?") == ("", "")
