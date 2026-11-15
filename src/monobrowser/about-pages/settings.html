@@ -25,6 +25,9 @@
     color: #6e6e73;
     margin-bottom: 32px;
   }
+  .subtitle-spaced {
+    margin-top: 36px;
+  }
   .option-group {
     display: flex;
     flex-direction: column;
@@ -104,6 +107,16 @@
       <div>
         <div class="label">DuckDuckGo</div>
         <div class="url">duckduckgo.com</div>
+      </div>
+    </a>
+  </div>
+  <p class="subtitle subtitle-spaced">Session</p>
+  <div class="option-group">
+    <a class="option{{#restore}}" href="https://monobrowser.internal/set-restore?toggle">
+      <span class="check"></span>
+      <div>
+        <div class="label">Restore previous session</div>
+        <div class="url">Reopen tabs and window geometry on launch</div>
       </div>
     </a>
   </div>

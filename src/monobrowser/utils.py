@@ -93,6 +93,7 @@ DEFAULT_SEARCH_ENGINE = "duckduckgo"
 
 INTERNAL_SEARCH_BASE = "https://monobrowser.internal/search?"
 INTERNAL_SET_SEARCH_BASE = "https://monobrowser.internal/set-search?"
+INTERNAL_SET_RESTORE_BASE = "https://monobrowser.internal/set-restore?"
 INTERNAL_RETRY_BASE = "https://monobrowser.internal/retry?url="
 
 
@@ -109,6 +110,10 @@ def internal_url_action(url: str) -> tuple[str, str]:
         _, _, name = url.partition("?")
         if name in SEARCH_ENGINES:
             return ("set-search", name)
+        return ("", "")
+    if url.startswith(INTERNAL_SET_RESTORE_BASE):
+        if url.partition("?")[2].strip() == "toggle":
+            return ("set-restore", "toggle")
         return ("", "")
     if url.startswith(INTERNAL_SEARCH_BASE):
         query = parse_qs(urlsplit(url).query).get("q", [""])[0].strip()

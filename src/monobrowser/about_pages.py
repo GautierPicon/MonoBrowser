@@ -53,13 +53,14 @@ def newtab_html() -> str:
     )
 
 
-def settings_html(engine: str) -> str:
+def settings_html(engine: str, restore: bool = True) -> str:
     html = SETTINGS_HTML_PATH.read_text(encoding="utf-8")
     html = html.replace("{{COMMON_CSS}}", COMMON_CSS)
     html = html.replace("{{#google}}", " selected" if engine == "google" else "")
     html = html.replace(
         "{{#duckduckgo}}", " selected" if engine == "duckduckgo" else ""
     )
+    html = html.replace("{{#restore}}", " selected" if restore else "")
     return html
 
 

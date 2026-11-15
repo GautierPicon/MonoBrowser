@@ -167,6 +167,54 @@ Window {
         }
     }
 
+    function restoreSessionOrNewTab() {
+        var state = bridge ? bridge.loadSessionState() : null
+        var urls = state && state.urls ? state.urls : null
+        var ok = bridge && bridge.restoreSession && urls && urls.length > 0
+        if (!ok) {
+            addTab()
+            return
+        }
+        var geo = state.geometry
+        if (geo && geo.width >= 480 && geo.height >= 320) {
+            window.x = geo.x
+            window.y = geo.y
+            window.width = geo.width
+            window.height = geo.height
+        }
+        for (var i = 0; i < urls.length; ++i) {
+            var u = String(urls[i])
+            if (u === "about:settings" || u === "about:version") {
+                var aboutIndex = addTab()
+                var aboutView = viewAt(aboutIndex)
+                if (aboutView)
+                    loadAbout(aboutView, u === "about:version" ? "version" : "settings")
+            } else if (u === "" || u.indexOf("about:") === 0
+                       || u.indexOf("https://monobrowser.internal") === 0) {
+                addTab()
+            } else {
+                addTab(u)
+            }
+        }
+        var savedIndex = typeof state.current_index === "number" ? state.current_index : 0
+        setCurrentIndex(Math.max(0, Math.min(savedIndex, tabs.count - 1)))
+        if (geo && geo.maximized === true)
+            showMaximized()
+    }
+
+    function saveSessionState() {
+        if (!bridge)
+            return
+        var urls = []
+        for (var i = 0; i < views.length; ++i) {
+            var view = views[i]
+            var url = view ? String(view.url) : ""
+            urls.push(url === "" ? "about:newtab" : url)
+        }
+        var big = visibility === Window.Maximized || visibility === Window.FullScreen
+        bridge.saveSession(urls, Math.max(0, currentIndex), x, y, width, height, big)
+    }
+
     function addTab(url, atIndex, seed) {
         var view = createView()
         if (!view)
@@ -280,6 +328,11 @@ Window {
         }
         if (action === "set-search") {
             bridge.searchEngine = bridge.internalParam(text)
+            loadAbout(view, "settings")
+            return
+        }
+        if (action === "set-restore") {
+            bridge.restoreSession = !bridge.restoreSession
             loadAbout(view, "settings")
             return
         }
@@ -539,7 +592,10 @@ Window {
     }
 
     onActiveChanged: window.updatePipAvailability()
-    onClosing: window.exitPip()
+    onClosing: {
+        window.exitPip()
+        window.saveSessionState()
+    }
 
-    Component.onCompleted: addTab()
+    Component.onCompleted: restoreSessionOrNewTab()
 }
