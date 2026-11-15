@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Controls
 import QtWebEngine
 import "chrome"
 
@@ -80,9 +79,9 @@ Window {
     function pollIconQueue() {
         iconPollTicks = iconPollTicks + 1
         var remaining = []
-        for (var i = 0; i < iconPollQueue.length; ++i) {
-            var v = iconPollQueue[i]
-            var raw = ""
+        for (let i = 0; i < iconPollQueue.length; ++i) {
+            let v = iconPollQueue[i]
+            let raw = ""
             try {
                 if (v && v.icon !== undefined && v.icon !== null)
                     raw = String(v.icon)
@@ -241,11 +240,11 @@ Window {
             window.width = geo.width
             window.height = geo.height
         }
-        for (var i = 0; i < urls.length; ++i) {
-            var u = String(urls[i])
+        for (let i = 0; i < urls.length; ++i) {
+            let u = String(urls[i])
             if (u === "about:settings" || u === "about:version") {
-                var aboutIndex = addTab()
-                var aboutView = viewAt(aboutIndex)
+                let aboutIndex = addTab()
+                let aboutView = viewAt(aboutIndex)
                 if (aboutView)
                     loadAbout(aboutView, u === "about:version" ? "version" : "settings")
             } else if (u === "" || u.indexOf("about:") === 0
@@ -265,9 +264,9 @@ Window {
         if (!bridge)
             return
         var urls = []
-        for (var i = 0; i < views.length; ++i) {
-            var view = views[i]
-            var url = view ? String(view.url) : ""
+        for (let i = 0; i < views.length; ++i) {
+            let view = views[i]
+            let url = view ? String(view.url) : ""
             urls.push(url === "" ? "about:newtab" : url)
         }
         var big = visibility === Window.Maximized || visibility === Window.FullScreen
@@ -390,7 +389,7 @@ Window {
         var action = bridge.internalAction(text)
 
         if (action === "retry") {
-            var retryTarget = bridge.internalParam(text)
+            const retryTarget = bridge.internalParam(text)
             if (retryTarget !== "")
                 view.url = retryTarget
             return
@@ -526,7 +525,7 @@ Window {
         var view = views[from]
         var items = []
         for (let i = 0; i < tabs.count; ++i) {
-            var entry = tabs.get(i)
+            let entry = tabs.get(i)
             items.push({ title: entry.title, url: entry.url,
                          favicon: entry.favicon, loading: entry.loading })
         }
@@ -646,11 +645,11 @@ Window {
     Shortcut { sequences: ["Ctrl+0"]; onActivated: window.zoomReset() }
 
     function reloadAboutPages() {
-        for (var i = 0; i < views.length; ++i) {
-            var view = views[i]
+        for (let i = 0; i < views.length; ++i) {
+            let view = views[i]
             if (!view)
                 continue
-            var u = String(view.url)
+            let u = String(view.url)
             if (u === "about:settings")
                 loadAbout(view, "settings")
             else if (u === "about:version")

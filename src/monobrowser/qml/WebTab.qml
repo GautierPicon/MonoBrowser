@@ -79,7 +79,7 @@ WebEngineView {
         if (!boxes)
             return [0, 0]
         var url = String(frame.url)
-        for (var i = 0; i < boxes.length; ++i) {
+        for (let i = 0; i < boxes.length; ++i) {
             if (String(boxes[i][0]) === url)
                 return [boxes[i][1], boxes[i][2]]
         }
@@ -106,9 +106,9 @@ WebEngineView {
             frame.runJavaScript(frameBoxesScript(), function (boxes) {
                 var pending = frames.length
                 var found = null
-                for (var i = 0; i < frames.length; ++i) {
-                    var child = frames[i]
-                    var offset = frameOffset(boxes, child, i)
+                for (let i = 0; i < frames.length; ++i) {
+                    let child = frames[i]
+                    let offset = frameOffset(boxes, child, i)
                     probeFrame(child, offsetX + offset[0], offsetY + offset[1], depth + 1,
                                playing, function (result) {
                         if (result !== null && result !== undefined && found === null)
