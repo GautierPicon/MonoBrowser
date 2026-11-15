@@ -65,6 +65,10 @@ class Bridge(QObject):
         return utils.icon_data_url(name, color)
 
     @pyqtSlot(str, result="QString")
+    def faviconSource(self, icon: str) -> str:
+        return utils.svg_favicon_data_uri(icon) or icon
+
+    @pyqtSlot(str, result="QString")
     def internalAction(self, url: str) -> str:
         return utils.internal_url_action(url)[0]
 

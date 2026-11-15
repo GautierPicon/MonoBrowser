@@ -150,3 +150,43 @@ def test_internal_url_action_set_theme() -> None:
         "",
     )
     assert internal_url_action("https://monobrowser.internal/set-theme?") == ("", "")
+
+
+def test_svg_favicon_data_uri_decodes() -> None:
+    raw = (
+        "image://favicon/data:image/svg+xml,"
+        "%253Csvg xmlns='http://www.w3.org/2000/svg' width='73' height='63' "
+        "viewBox='0 0 73 63' fill='none'%253E"
+        "%253Cpath d='M36.5 0L28.2524Z' fill='%252300b898' /%253E%253C/svg%253E"
+    )
+    src = utils.svg_favicon_data_uri(raw)
+    assert src is not None
+    assert src.startswith("data:image/svg+xml;base64,")
+    svg = base64.b64decode(src.split(",", 1)[1]).decode()
+    assert "<svg" in svg
+    assert "#00b898" in svg
+
+
+def test_svg_favicon_data_uri_base64_passthrough() -> None:
+    raw = "image://favicon/data:image/svg+xml;base64,PHN2Zy8+"
+    assert utils.svg_favicon_data_uri(raw) == "data:image/svg+xml;base64,PHN2Zy8+"
+
+
+def test_svg_favicon_data_uri_rejects_unmatched() -> None:
+    assert utils.svg_favicon_data_uri("image://favicon/https://x/f.ico") is None
+    assert utils.svg_favicon_data_uri("data:image/png;base64,PHN2Zy8+") is None
+    assert utils.svg_favicon_data_uri("") is None
+
+
+def test_svg_favicon_data_uri_raw_link_href() -> None:
+    raw = (
+        "data:image/svg+xml,"
+        "%3Csvg xmlns='http://www.w3.org/2000/svg'%3E"
+        "%3Cpath fill='%2300b898'/%3E%3C/svg%3E"
+    )
+    src = utils.svg_favicon_data_uri(raw)
+    assert src is not None
+    assert src.startswith("data:image/svg+xml;base64,")
+    svg = base64.b64decode(src.split(",", 1)[1]).decode()
+    assert "<svg" in svg
+    assert "#00b898" in svg

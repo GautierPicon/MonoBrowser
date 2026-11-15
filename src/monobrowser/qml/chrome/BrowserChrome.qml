@@ -34,6 +34,7 @@ Item {
     signal reloadRequested()
     signal stopRequested()
     signal pipRequested()
+    signal faviconError(int index)
 
     Column {
         anchors.fill: parent
@@ -60,6 +61,7 @@ Item {
                 onTabClosed: function (index) { root.tabClosed(index) }
                 onTabMoved: function (from, to) { root.tabMoved(from, to) }
                 onNewTabRequested: root.newTabRequested()
+                onFaviconError: function (index) { root.faviconError(index) }
                 onBackgroundPressed: root.backgroundPressed()
                 onBackgroundDoubleClicked: root.backgroundDoubleClicked()
             }

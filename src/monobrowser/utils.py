@@ -4,7 +4,7 @@ import sys
 import tomllib
 from functools import lru_cache
 from pathlib import Path
-from urllib.parse import parse_qs, quote, urlsplit
+from urllib.parse import parse_qs, quote, unquote, unquote_to_bytes, urlsplit
 
 from PyQt6.QtCore import QUrl
 
@@ -96,6 +96,28 @@ INTERNAL_SET_SEARCH_BASE = "https://monobrowser.internal/set-search?"
 INTERNAL_SET_RESTORE_BASE = "https://monobrowser.internal/set-restore?"
 INTERNAL_SET_THEME_BASE = "https://monobrowser.internal/set-theme?"
 INTERNAL_RETRY_BASE = "https://monobrowser.internal/retry?url="
+
+
+def svg_favicon_data_uri(icon: str) -> str | None:
+    marker = "data:image/svg+xml"
+    body = (
+        icon[len("image://favicon/") :] if icon.startswith("image://favicon/") else icon
+    )
+    if not body.startswith(marker):
+        return None
+    decoded = unquote(body)
+    if decoded.startswith(marker + ";base64,"):
+        b64 = decoded.split(",", 1)[1]
+        try:
+            base64.b64decode(b64, validate=True)
+        except Exception:
+            return None
+        return "data:image/svg+xml;base64," + b64
+    if not decoded.startswith(marker + ","):
+        return None
+    payload = decoded[len(marker + ",") :]
+    svg = unquote_to_bytes(payload)
+    return "data:image/svg+xml;base64," + base64.b64encode(svg).decode()
 
 
 def resolve_address_text(text: str, engine: str = DEFAULT_SEARCH_ENGINE) -> str:

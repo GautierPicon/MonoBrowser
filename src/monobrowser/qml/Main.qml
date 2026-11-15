@@ -42,6 +42,65 @@ Window {
         return index >= 0 && index < views.length ? views[index] : null
     }
 
+    function refreshIcon(view, explicitSrc) {
+        if (!view)
+            return
+        var text = String(view.url)
+        var raw = explicitSrc !== undefined
+                  ? String(explicitSrc)
+                  : (view.icon !== undefined && view.icon !== null ? String(view.icon) : "")
+        var src = bridge ? bridge.faviconSource(raw) : raw
+        if (src === "" && text.indexOf("about:") === 0)
+            src = bridge.iconUrl("mono.svg", "#86868b")
+        setRole(view.tabIndex, "favicon", src)
+    }
+
+    readonly property string iconLinkJs:
+        "(function () { var links = document.querySelectorAll('link[rel~=icon], link[rel=shortcut-icon], link[rel=icon], link[rel=apple-touch-icon]'); if (!links.length) return ''; var best = links[0]; var bestSize = -1; for (var i = 0; i < links.length; i++) { var s = links[i].getAttribute('sizes'); var m = s ? s.match(/(\\d+)\\s*x\\s*(\\d+)/) : null; var w = m ? parseInt(m[1], 10) : 10; if (w > bestSize) { bestSize = w; best = links[i]; } } return best.href || ''; })()"
+
+    property var iconPollQueue: []
+    property int iconPollTicks: 0
+
+    Timer {
+        id: iconPollTimer
+        interval: 400
+        repeat: true
+        running: window.iconPollQueue.length > 0
+        onTriggered: window.pollIconQueue()
+    }
+
+    function armIconPoll(view) {
+        if (!view)
+            return
+        if (iconPollQueue.indexOf(view) === -1)
+            iconPollQueue = iconPollQueue.concat([view])
+        iconPollTicks = 0
+    }
+
+    function pollIconQueue() {
+        iconPollTicks = iconPollTicks + 1
+        var remaining = []
+        for (var i = 0; i < iconPollQueue.length; ++i) {
+            var v = iconPollQueue[i]
+            var raw = ""
+            try {
+                if (v && v.icon !== undefined && v.icon !== null)
+                    raw = String(v.icon)
+            } catch (e) {
+                v = null
+            }
+            if (!v)
+                continue
+            if (raw !== "")
+                refreshIcon(v)
+            else
+                remaining.push(v)
+        }
+        iconPollQueue = remaining
+        if (remaining.length === 0 || iconPollTicks > 20)
+            iconPollQueue = []
+    }
+
     function togglePip() {
         if (pipView !== null) {
             exitPip()
@@ -263,6 +322,15 @@ Window {
         })
         view.recentlyAudibleChanged.connect(function () { updateLifecycle(view) })
         view.loadingChanged.connect(function (info) {
+            updateLifecycle(view)
+            if (info.status === WebEngineView.LoadSucceededStatus) {
+                window.armIconPoll(view)
+                view.runJavaScript(window.iconLinkJs, function (href) {
+                    if (href === undefined || href === null || String(href) === "")
+                        return
+                    window.refreshIcon(view, String(href))
+                })
+            }
             if (info.status !== WebEngineView.LoadFailedStatus)
                 return
             var url = String(info.url)
@@ -293,6 +361,7 @@ Window {
         var active = views.indexOf(view) === currentIndex
                   || view === pipView
                   || view.recentlyAudible
+                  || view.loading
         view.lifecycleState = active ? WebEngineView.LifecycleState.Active
                                      : WebEngineView.LifecycleState.Frozen
     }
@@ -353,9 +422,7 @@ Window {
         setRole(index, "title", view.title !== "" ? view.title : "New Tab")
         setRole(index, "url", text)
         setRole(index, "loading", view.loading)
-        var icon = view.icon
-        setRole(index, "favicon",
-                icon !== undefined && icon !== null ? String(icon) : "")
+        refreshIcon(view)
 
         if (view !== currentView)
             return
@@ -395,6 +462,7 @@ Window {
             address = url === "about:newtab" ? "" : url
             updateChrome(current)
             current.forceActiveFocus()
+            refreshIcon(current)
         }
         updatePipAvailability()
     }
@@ -540,6 +608,7 @@ Window {
         pipDetached: window.pipView !== null && window.pipView === window.currentView
         pipTitle: window.pipView !== null ? window.pipView.title : ""
         onTabClicked: function (index) { window.setCurrentIndex(index) }
+        onFaviconError: function (index) { window.setRole(index, "favicon", "") }
         onTabClosed: function (index) { window.closeTab(index) }
         onTabMoved: function (from, to) { window.moveTab(from, to) }
         onNewTabRequested: window.addTab()

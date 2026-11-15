@@ -16,6 +16,7 @@ Item {
     signal tabClosed(int index)
     signal tabMoved(int from, int to)
     signal newTabRequested()
+    signal faviconError(int index)
     signal backgroundPressed()
     signal backgroundDoubleClicked()
 
@@ -180,6 +181,8 @@ Item {
                                 source: tabDelegate.favicon
                                 asynchronous: true
                                 fillMode: Image.PreserveAspectFit
+                                onStatusChanged: if (status === Image.Error)
+                                                     root.faviconError(tabDelegate.index)
                             }
 
                             IconImage {
