@@ -37,10 +37,19 @@ def _globe_data_uri() -> str:
     return utils.icon_data_url("globe.svg", "#86868b")
 
 
+@lru_cache(maxsize=1)
+def _mono_data_uri() -> str:
+    svg = assets_path("mono.svg").read_text(encoding="utf-8")
+    svg = svg.replace('stroke="#000000"', 'stroke="#86868b"')
+    encoded = base64.b64encode(svg.encode("utf-8")).decode()
+    return f"data:image/svg+xml;base64,{encoded}"
+
+
 def version_html() -> str:
     return (
         ABOUT_HTML_PATH.read_text(encoding="utf-8")
         .replace("{{COMMON_CSS}}", COMMON_CSS)
+        .replace("{{FAVICON}}", _mono_data_uri())
         .replace("{{ICON}}", _icon_data_uri())
         .replace("{{VERSION}}", get_version())
         .replace("{{ARCHITECTURE}}", platform.machine())
@@ -48,14 +57,17 @@ def version_html() -> str:
 
 
 def newtab_html() -> str:
-    return NEWTAB_HTML_PATH.read_text(encoding="utf-8").replace(
-        "{{COMMON_CSS}}", COMMON_CSS
+    return (
+        NEWTAB_HTML_PATH.read_text(encoding="utf-8")
+        .replace("{{COMMON_CSS}}", COMMON_CSS)
+        .replace("{{FAVICON}}", _mono_data_uri())
     )
 
 
 def settings_html(engine: str, restore: bool = True) -> str:
     html = SETTINGS_HTML_PATH.read_text(encoding="utf-8")
     html = html.replace("{{COMMON_CSS}}", COMMON_CSS)
+    html = html.replace("{{FAVICON}}", _mono_data_uri())
     html = html.replace("{{#google}}", " selected" if engine == "google" else "")
     html = html.replace(
         "{{#duckduckgo}}", " selected" if engine == "duckduckgo" else ""
@@ -69,6 +81,7 @@ def error_html(url: str, reason: str = "") -> str:
     return (
         ERROR_HTML_PATH.read_text(encoding="utf-8")
         .replace("{{COMMON_CSS}}", COMMON_CSS)
+        .replace("{{FAVICON}}", _globe_data_uri())
         .replace("{{ICON}}", _globe_data_uri())
         .replace("{{URL}}", escape(url))
         .replace("{{REASON}}", escape(reason))

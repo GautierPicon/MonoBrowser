@@ -139,9 +139,8 @@ def test_save_session_slot_arity_matches_qml_call() -> None:
     slots = [
         Bridge.staticMetaObject.method(i)
         for i in range(Bridge.staticMetaObject.methodCount())
-        if Bridge.staticMetaObject.method(i).methodType()
-        == QMetaMethod.MethodType.Slot
-        and bytes(Bridge.staticMetaObject.method(i).name()) == b"saveSession"
+        if Bridge.staticMetaObject.method(i).methodType() == QMetaMethod.MethodType.Slot
+        and Bridge.staticMetaObject.method(i).name().data().decode() == "saveSession"
     ]
     assert len(slots) == 1
     assert slots[0].parameterCount() == 7

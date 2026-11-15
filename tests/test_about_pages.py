@@ -45,3 +45,19 @@ def test_error_html_retry_link_roundtrips() -> None:
     end = html.index('"', start)
     retry_url = "https://monobrowser.internal/retry?url=" + html[start:end]
     assert utils.internal_url_action(retry_url) == ("retry", target)
+
+
+def test_about_pages_use_mono_favicon() -> None:
+    for html in (
+        about_pages.version_html(),
+        about_pages.newtab_html(),
+        about_pages.settings_html("google"),
+    ):
+        assert '<link rel="icon" href="data:image/svg+xml;base64,' in html
+        assert "{{" not in html
+
+
+def test_error_page_uses_globe_favicon() -> None:
+    html = about_pages.error_html("https://example.com/", "boom")
+    assert '<link rel="icon" href="data:image/svg+xml;base64,' in html
+    assert "{{" not in html
