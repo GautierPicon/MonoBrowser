@@ -15,6 +15,7 @@ Item {
     signal tabClicked(int index)
     signal tabClosed(int index)
     signal tabMoved(int from, int to)
+    signal tabMuteToggled(int index)
     signal newTabRequested()
     signal faviconError(int index)
     signal backgroundPressed()
@@ -112,8 +113,11 @@ Item {
                     required property string favicon
                     required property string url
                     required property bool loading
+                    required property bool audible
+                    required property bool muted
 
                     readonly property bool isCurrent: index === root.currentIndex
+                    readonly property bool showMute: audible || muted
 
                     readonly property string faviconOrigin: {
                         var m = url.match(/^((?:https?|ftp):\/\/[^/]+)/)
@@ -210,13 +214,45 @@ Item {
 
                             anchors.left: iconSlot.right
                             anchors.leftMargin: 8
-                            anchors.right: closeButton.left
+                            anchors.right: tabDelegate.showMute ? muteButton.left : closeButton.left
                             anchors.rightMargin: 4
                             anchors.verticalCenter: parent.verticalCenter
                             text: tabDelegate.title !== "" ? tabDelegate.title : "New Tab"
                             elide: Text.ElideRight
                             font.pixelSize: 13
                             color: tabDelegate.isCurrent ? Theme.textActive : Theme.textInactive
+                        }
+
+                        Rectangle {
+                            id: muteButton
+
+                            visible: tabDelegate.showMute
+                            width: 22
+                            height: 22
+                            radius: 11
+                            anchors.right: closeButton.left
+                            anchors.rightMargin: 2
+                            anchors.verticalCenter: parent.verticalCenter
+                            color: muteHover.hovered ? Theme.closeHoverBg : "transparent"
+
+                            IconImage {
+                                anchors.centerIn: parent
+                                bridge: root.bridge
+                                iconName: tabDelegate.muted ? "sound/volume-off.svg" : "sound/volume-on.svg"
+                                color: Theme.textInactive
+                                size: 13
+                            }
+
+                            HoverHandler { id: muteHover; cursorShape: Qt.PointingHandCursor }
+                            TapHandler {
+                                acceptedButtons: Qt.LeftButton
+                                onTapped: root.tabMuteToggled(tabDelegate.index)
+                            }
+
+                            ToolTip.text: tabDelegate.muted ? "Unmute tab" : "Mute tab"
+                            ToolTip.visible: muteHover.hovered
+                            ToolTip.delay: 600
+                            ToolTip.timeout: 8000
                         }
 
                         Rectangle {

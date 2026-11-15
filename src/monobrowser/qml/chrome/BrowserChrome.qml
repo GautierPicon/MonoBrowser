@@ -25,6 +25,7 @@ Item {
     signal tabClicked(int index)
     signal tabClosed(int index)
     signal tabMoved(int from, int to)
+    signal tabMuteToggled(int index)
     signal newTabRequested()
     signal backgroundPressed()
     signal backgroundDoubleClicked()
@@ -60,6 +61,7 @@ Item {
                 onTabClicked: function (index) { root.tabClicked(index) }
                 onTabClosed: function (index) { root.tabClosed(index) }
                 onTabMoved: function (from, to) { root.tabMoved(from, to) }
+                onTabMuteToggled: function (index) { root.tabMuteToggled(index) }
                 onNewTabRequested: root.newTabRequested()
                 onFaviconError: function (index) { root.faviconError(index) }
                 onBackgroundPressed: root.backgroundPressed()

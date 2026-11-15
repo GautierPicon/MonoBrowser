@@ -287,7 +287,9 @@ Window {
             title: title,
             url: target,
             favicon: icon,
-            loading: false
+            loading: false,
+            audible: false,
+            muted: false
         })
         reindexViews()
         if (target !== "")
@@ -319,7 +321,11 @@ Window {
             if (index >= 0)
                 view.openPending(views[index])
         })
-        view.recentlyAudibleChanged.connect(function () { updateLifecycle(view) })
+        view.recentlyAudibleChanged.connect(function () {
+            setRole(view.tabIndex, "audible", view.recentlyAudible)
+            updateLifecycle(view)
+        })
+        view.audioMutedChanged.connect(function (muted) { setRole(view.tabIndex, "muted", muted) })
         view.loadingChanged.connect(function (info) {
             updateLifecycle(view)
             if (info.status === WebEngineView.LoadSucceededStatus) {
@@ -580,6 +586,14 @@ Window {
         setCurrentIndex((currentIndex + delta + tabs.count) % tabs.count)
     }
 
+    function toggleTabMute(index) {
+        if (index < 0 || index >= views.length)
+            return
+        var view = views[index]
+        if (view)
+            view.audioMuted = !view.audioMuted
+    }
+
     function navigate(text) {
         var target = currentView
         if (!target || text === "")
@@ -610,6 +624,7 @@ Window {
         onFaviconError: function (index) { window.setRole(index, "favicon", "") }
         onTabClosed: function (index) { window.closeTab(index) }
         onTabMoved: function (from, to) { window.moveTab(from, to) }
+        onTabMuteToggled: function (index) { window.toggleTabMute(index) }
         onNewTabRequested: window.addTab()
         onBackgroundPressed: window.startSystemMove()
         onBackgroundDoubleClicked: window.toggleZoom()
@@ -635,6 +650,7 @@ Window {
     Shortcut { sequences: ["Ctrl+Alt+Left"]; onActivated: window.cycleTab(-1) }
     Shortcut { sequences: ["Ctrl+Alt+Right"]; onActivated: window.cycleTab(1) }
     Shortcut { sequences: ["Ctrl+Shift+P"]; onActivated: window.togglePip() }
+    Shortcut { sequences: ["Ctrl+Shift+M"]; onActivated: window.toggleTabMute(window.currentIndex) }
     Shortcut { sequences: ["Escape"]; onActivated: if (window.findBar.visible) window.findBar.close(); else if (window.currentView) window.currentView.stop() }
     Shortcut { sequences: ["Ctrl+F"]; onActivated: window.findBar.toggle() }
     Shortcut { sequences: ["Ctrl+Shift+BracketLeft"]; onActivated: window.cycleTab(-1) }
