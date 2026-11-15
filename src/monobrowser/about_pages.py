@@ -16,6 +16,9 @@ COMMON_CSS = """
   :root { color-scheme: light dark; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
+  body { background: #f5f5f7; color: #1d1d1f; }
+  h1 { color: #000000; }
+
   @media (prefers-color-scheme: dark) {
     body { background: #1c1c1e; color: #f5f5f7; }
     h1 { color: #ffffff; }
