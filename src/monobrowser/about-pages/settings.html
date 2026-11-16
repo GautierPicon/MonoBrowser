@@ -96,6 +96,53 @@
   .theme-dark .option.selected { background: rgba(91,141,239,0.22); }
   .theme-dark .option.selected .check { box-shadow: inset 0 0 0 4px #2c2c2e; }
   .theme-dark .option .url { color: #98989d; }
+  .adblock-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    border: 1px solid #d2d2d7;
+    border-radius: 10px;
+    background: #ffffff;
+  }
+  .adblock-text { flex: 1; min-width: 0; }
+  .adblock-row .label { font-size: 16px; font-weight: 500; }
+  .adblock-row .url { font-size: 12px; color: #6e6e73; margin-top: 2px; }
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 26px;
+    flex-shrink: 0;
+    background: #d2d2d7;
+    border-radius: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+    touch-action: none;
+  }
+  .switch .knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s;
+    pointer-events: none;
+  }
+  .switch.on { background: #5b8def; }
+  .switch.on .knob { transform: translateX(18px); }
+  .switch.dragging .knob { transition: none; }
+  .theme-dark .adblock-row {
+    background: #2c2c2e;
+    border-color: #48484a;
+    color: #f5f5f7;
+  }
+  .theme-dark .adblock-row .url { color: #98989d; }
+  .theme-dark .switch { background: #48484a; }
+  .theme-dark .switch .knob { background: #f5f5f7; }
 </style>
 </head>
 <body>
@@ -135,6 +182,78 @@
       <span class="check push"></span>
     </a>
   </div>
+  <p class="subtitle subtitle-spaced">Ad blocking</p>
+  <div class="option-group">
+    <div class="adblock-row">
+      <div class="adblock-text">
+        <div class="label">Block ads</div>
+        <div class="url">StevenBlack/hosts · {{ADBLOCK_COUNT}} domains · {{BLOCKED_COUNT}} blocked so far</div>
+      </div>
+      <a class="switch{{#adblock}}" id="adblock-switch" role="switch"
+         aria-checked="{{ADBLOCK_ARIA}}"
+         href="https://monobrowser.internal/set-adblock?toggle" aria-label="Block ads"><span class="knob"></span></a>
+    </div>
+    {{COSMETIC_ROW_BEGIN}}<div class="adblock-row">
+      <div class="adblock-text">
+        <div class="label">Hide ad elements (CSS)</div>
+        <div class="url">Also hide ad containers left by blocked requests</div>
+      </div>
+      <a class="switch{{#cosmetic}}" id="cosmetic-switch" role="switch"
+         aria-checked="{{COSMETIC_ARIA}}"
+         href="https://monobrowser.internal/set-adblock-cosmetic?toggle" aria-label="Hide ad elements"><span class="knob"></span></a>
+    </div>{{COSMETIC_ROW_END}}
+  </div>
+  <script>
+    function attachSwitch(el) {
+      if (!el) return;
+      var href = el.getAttribute('href');
+      var down = false;
+      var moved = false;
+      el.addEventListener('pointerdown', function (e) {
+        e.preventDefault();
+        down = true;
+        moved = false;
+        el.setPointerCapture(e.pointerId);
+        el.classList.add('dragging');
+      });
+      el.addEventListener('pointermove', function (e) {
+        if (!down) return;
+        moved = true;
+        var rect = el.getBoundingClientRect();
+        var knob = 22;
+        var x = e.clientX - rect.left - knob / 2;
+        x = Math.max(0, Math.min(rect.width - knob, x));
+        el.querySelector('.knob').style.transform = 'translateX(' + x + 'px)';
+      });
+      el.addEventListener('pointerup', function (e) {
+        if (!down) return;
+        down = false;
+        el.classList.remove('dragging');
+        var wasOn = el.classList.contains('on');
+        el.querySelector('.knob').style.transform = '';
+        if (!moved) {
+          window.location.href = href;
+          return;
+        }
+        var rect = el.getBoundingClientRect();
+        var on = e.clientX > rect.left + rect.width / 2;
+        if (on !== wasOn) window.location.href = href;
+      });
+      el.addEventListener('pointercancel', function () {
+        down = false;
+        el.classList.remove('dragging');
+        el.querySelector('.knob').style.transform = '';
+      });
+      el.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          window.location.href = href;
+        }
+      });
+    }
+    attachSwitch(document.getElementById('adblock-switch'));
+    attachSwitch(document.getElementById('cosmetic-switch'));
+  </script>
   <p class="subtitle subtitle-spaced">Session</p>
   <div class="option-group">
     <a class="option{{#restore}}" href="https://monobrowser.internal/set-restore?toggle">

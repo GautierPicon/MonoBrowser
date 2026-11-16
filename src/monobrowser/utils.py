@@ -95,6 +95,10 @@ INTERNAL_SEARCH_BASE = "https://monobrowser.internal/search?"
 INTERNAL_SET_SEARCH_BASE = "https://monobrowser.internal/set-search?"
 INTERNAL_SET_RESTORE_BASE = "https://monobrowser.internal/set-restore?"
 INTERNAL_SET_THEME_BASE = "https://monobrowser.internal/set-theme?"
+INTERNAL_SET_ADBLOCK_BASE = "https://monobrowser.internal/set-adblock?"
+INTERNAL_SET_ADBLOCK_COSMETIC_BASE = (
+    "https://monobrowser.internal/set-adblock-cosmetic?"
+)
 INTERNAL_RETRY_BASE = "https://monobrowser.internal/retry?url="
 
 
@@ -142,6 +146,14 @@ def internal_url_action(url: str) -> tuple[str, str]:
         mode = url.partition("?")[2].strip()
         if mode in ("system", "light", "dark"):
             return ("set-theme", mode)
+        return ("", "")
+    if url.startswith(INTERNAL_SET_ADBLOCK_BASE):
+        if url.partition("?")[2].strip() == "toggle":
+            return ("set-adblock", "toggle")
+        return ("", "")
+    if url.startswith(INTERNAL_SET_ADBLOCK_COSMETIC_BASE):
+        if url.partition("?")[2].strip() == "toggle":
+            return ("set-adblock-cosmetic", "toggle")
         return ("", "")
     if url.startswith(INTERNAL_SEARCH_BASE):
         query = parse_qs(urlsplit(url).query).get("q", [""])[0].strip()

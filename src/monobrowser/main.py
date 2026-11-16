@@ -5,7 +5,9 @@ import sys
 from PyQt6.QtCore import QTimer, QUrl
 from PyQt6.QtGui import QGuiApplication, QIcon
 from PyQt6.QtQml import QQmlApplicationEngine
+from PyQt6.QtWebEngineQuick import QQuickWebEngineProfile
 
+from monobrowser.adblock import AdblockInterceptor
 from monobrowser.bridge import Bridge
 from monobrowser.titlebar import attach
 from monobrowser.utils import ICON_PATH, get_version, is_bundled, qml_path
@@ -22,6 +24,10 @@ def main():
     app.setApplicationVersion(get_version())
     if not is_bundled():
         app.setWindowIcon(QIcon(str(ICON_PATH)))
+
+    QQuickWebEngineProfile.defaultProfile().setUrlRequestInterceptor(
+        AdblockInterceptor(app)
+    )
 
     signalWakeup = QTimer()
     signalWakeup.timeout.connect(lambda: None)

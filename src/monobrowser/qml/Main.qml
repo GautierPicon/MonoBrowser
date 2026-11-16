@@ -31,6 +31,7 @@ Window {
     property var bridge: null
     property var pipView: null
     property bool canPip: false
+    property bool adblockCosmetic: false
     property var closedTabs: []
     property int closedCount: 0
 
@@ -304,7 +305,8 @@ Window {
 
     function createView() {
         var view = tabViewComponent.createObject(contentArea,
-                                                 { tabIndex: views.length })
+                                                 { tabIndex: views.length,
+                                                   cosmeticCss: window.adblockCosmetic })
         if (view === null) {
             console.warn("WebTab.qml: failed to create tab view")
             return null
@@ -412,6 +414,18 @@ Window {
         }
         if (action === "set-theme") {
             bridge.themeMode = bridge.internalParam(text)
+            loadAbout(view, "settings")
+            return
+        }
+        if (action === "set-adblock") {
+            bridge.adblockEnabled = !bridge.adblockEnabled
+            window.syncAdblockCosmetic()
+            loadAbout(view, "settings")
+            return
+        }
+        if (action === "set-adblock-cosmetic") {
+            bridge.adblockCosmetic = !bridge.adblockCosmetic
+            window.syncAdblockCosmetic()
             loadAbout(view, "settings")
             return
         }
@@ -676,11 +690,26 @@ Window {
         }
     }
 
+    function syncAdblockCosmetic() {
+        var on = bridge ? (bridge.adblockEnabled && bridge.adblockCosmetic) : false
+        adblockCosmetic = on
+        for (var i = 0; i < views.length; ++i) {
+            if (views[i])
+                views[i].cosmeticCss = on
+        }
+    }
+
     Connections {
         target: window.bridge
         function onThemeModeChanged() {
             Theme.mode = window.bridge.themeMode
             window.reloadAboutPages()
+        }
+        function onAdblockEnabledChanged() {
+            window.syncAdblockCosmetic()
+        }
+        function onAdblockCosmeticChanged() {
+            window.syncAdblockCosmetic()
         }
     }
 
@@ -719,8 +748,10 @@ Window {
     }
 
     Component.onCompleted: {
-        if (bridge)
+        if (bridge) {
             Theme.mode = bridge.themeMode
+            window.syncAdblockCosmetic()
+        }
         restoreSessionOrNewTab()
     }
 }

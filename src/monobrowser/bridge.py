@@ -15,6 +15,8 @@ class Bridge(QObject):
     searchEngineChanged = pyqtSignal()
     restoreSessionChanged = pyqtSignal()
     themeModeChanged = pyqtSignal()
+    adblockEnabledChanged = pyqtSignal()
+    adblockCosmeticChanged = pyqtSignal()
 
     def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
@@ -52,6 +54,28 @@ class Bridge(QObject):
             session.set_theme_mode(mode)
             self.themeModeChanged.emit()
 
+    @pyqtProperty(bool, notify=adblockEnabledChanged)
+    def adblockEnabled(self) -> bool:
+        return session.adblock_enabled()
+
+    @adblockEnabled.setter  # type: ignore[no-redef]
+    def adblockEnabled(self, enabled: bool) -> None:
+        enabled = bool(enabled)
+        if enabled != session.adblock_enabled():
+            session.set_adblock_enabled(enabled)
+            self.adblockEnabledChanged.emit()
+
+    @pyqtProperty(bool, notify=adblockCosmeticChanged)
+    def adblockCosmetic(self) -> bool:
+        return session.adblock_cosmetic()
+
+    @adblockCosmetic.setter  # type: ignore[no-redef]
+    def adblockCosmetic(self, enabled: bool) -> None:
+        enabled = bool(enabled)
+        if enabled != session.adblock_cosmetic():
+            session.set_adblock_cosmetic(enabled)
+            self.adblockCosmeticChanged.emit()
+
     @pyqtProperty(str)
     def version(self) -> str:
         return utils.get_version()
@@ -87,7 +111,11 @@ class Bridge(QObject):
     @pyqtSlot(result="QString")
     def settingsHtml(self) -> str:
         return settings_html(
-            self._search_engine, session.restore_enabled(), session.theme_mode()
+            self._search_engine,
+            session.restore_enabled(),
+            session.theme_mode(),
+            session.adblock_enabled(),
+            session.adblock_cosmetic(),
         )
 
     @pyqtSlot(result="QString")
