@@ -618,6 +618,7 @@ Window {
         windowRef: window
         canPip: window.canPip
         pipActive: window.pipView !== null
+        swipeView: window.currentView
         pipDetached: window.pipView !== null && window.pipView === window.currentView
         pipTitle: window.pipView !== null ? window.pipView.title : ""
         onTabClicked: function (index) { window.setCurrentIndex(index) }

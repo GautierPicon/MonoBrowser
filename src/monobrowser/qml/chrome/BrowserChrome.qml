@@ -14,6 +14,7 @@ Item {
     property bool pipDetached: false
     property bool canPip: false
     property string pipTitle: ""
+    property var swipeView: null
 
     readonly property Item contentArea: contentAreaItem
     readonly property var navBar: navBarItem
@@ -156,6 +157,14 @@ Item {
                         color: Theme.textInactive
                     }
                 }
+            }
+
+            HistorySwipe {
+                anchors.fill: parent
+                z: 50
+                view: root.swipeView
+                bridge: root.bridge
+                swipeEnabled: !root.pipActive && root.swipeView !== null
             }
 
             FindBar {
