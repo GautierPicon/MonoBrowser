@@ -155,7 +155,7 @@ Item {
             IconImage {
                 anchors.centerIn: parent
                 bridge: root.bridge
-                iconName: bubble.direction ? "nav/back.svg" : "nav/forward.svg"
+                iconName: bubble.direction ? "svg/nav/back.svg" : "svg/nav/forward.svg"
                 color: Theme.menuText
                 size: 20
             }

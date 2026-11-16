@@ -203,7 +203,7 @@ Item {
                                 visible: !tabDelegate.loading && tabDelegate.favicon === ""
                                 anchors.centerIn: parent
                                 bridge: root.bridge
-                                iconName: "globe.svg"
+                                iconName: "svg/globe.svg"
                                 color: Theme.textInactive
                                 size: 16
                             }
