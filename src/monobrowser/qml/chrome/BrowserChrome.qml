@@ -138,7 +138,7 @@ Item {
                     IconImage {
                         anchors.horizontalCenter: parent.horizontalCenter
                         bridge: root.bridge
-                        iconName: "pip/pip.svg"
+                        iconName: "svg/pip/pip.svg"
                         color: Theme.textInactive
                         size: 34
                     }

@@ -169,7 +169,7 @@ Item {
                                 visible: tabDelegate.loading
                                 anchors.centerIn: parent
                                 bridge: root.bridge
-                                iconName: "tabs/spinner.svg"
+                                iconName: "svg/tabs/spinner.svg"
                                 color: Theme.textInactive
                                 size: 16
                 
@@ -238,7 +238,7 @@ Item {
                             IconImage {
                                 anchors.centerIn: parent
                                 bridge: root.bridge
-                                iconName: tabDelegate.muted ? "sound/volume-off.svg" : "sound/volume-on.svg"
+                                iconName: tabDelegate.muted ? "svg/sound/volume-off.svg" : "svg/sound/volume-on.svg"
                                 color: Theme.textInactive
                                 size: 13
                             }
@@ -270,7 +270,7 @@ Item {
                             IconImage {
                                 anchors.centerIn: parent
                                 bridge: root.bridge
-                                iconName: "tabs/close.svg"
+                                iconName: "svg/tabs/close.svg"
                                 color: Theme.closeGlyph
                                 size: 14
                             }
@@ -341,7 +341,7 @@ Item {
                     IconImage {
                         anchors.centerIn: parent
                         bridge: root.bridge
-                        iconName: "tabs/new.svg"
+                        iconName: "svg/tabs/new.svg"
                         color: newTabHover.hovered ? Theme.textActive : Theme.textInactive
                         size: 16
                     }

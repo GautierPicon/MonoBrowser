@@ -158,7 +158,7 @@ Window {
                 IconImage {
                     anchors.centerIn: parent
                     bridge: root.bridge
-                    iconName: "tabs/close.svg"
+                    iconName: "svg/tabs/close.svg"
                     color: "#FFFFFF"
                     size: 12
                 }

@@ -51,7 +51,7 @@ Window {
                   : (view.icon !== undefined && view.icon !== null ? String(view.icon) : "")
         var src = bridge ? bridge.faviconSource(raw) : raw
         if (src === "" && text.indexOf("about:") === 0)
-            src = bridge.iconUrl("mono.svg", "#86868b")
+            src = bridge.iconUrl("svg/mono.svg", "#86868b")
         setRole(view.tabIndex, "favicon", src)
     }
 

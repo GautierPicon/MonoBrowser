@@ -52,9 +52,9 @@ def icon_data_url(name: str, color: str) -> str:
     return f"data:image/svg+xml;base64,{encoded}"
 
 
-ICON_PATH = assets_path("icon.icns")
+ICON_PATH = assets_path("icons/icon.icns")
 if not ICON_PATH.exists():
-    ICON_PATH = assets_path("icon.png")
+    ICON_PATH = assets_path("icons/icon.png")
 TOML_PATH = _project_root() / "pyproject.toml"
 
 KNOWN_SCHEMES = ("http://", "https://", "ftp://", "file://", "about:", "chrome://")

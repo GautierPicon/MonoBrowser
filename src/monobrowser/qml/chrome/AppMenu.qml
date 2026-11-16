@@ -32,7 +32,7 @@ Item {
             IconImage {
                 anchors.centerIn: parent
                 bridge: root.bridge
-                iconName: "menu/menu.svg"
+                iconName: "svg/menu.svg"
                 color: button.hovered ? Theme.textActive : Theme.iconNormal
                 size: 16
             }

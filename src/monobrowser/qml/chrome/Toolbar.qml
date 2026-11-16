@@ -60,7 +60,7 @@ RowLayout {
 
     NavButton {
         enabled: root.canGoBack
-        iconName: "nav/back.svg"
+        iconName: "svg/nav/back.svg"
         bridge: root.bridge
         tip: "Back"
         onClicked: root.backRequested()
@@ -68,14 +68,14 @@ RowLayout {
 
     NavButton {
         enabled: root.canGoForward
-        iconName: "nav/forward.svg"
+        iconName: "svg/nav/forward.svg"
         bridge: root.bridge
         tip: "Forward"
         onClicked: root.forwardRequested()
     }
 
     NavButton {
-        iconName: root.loading ? "" : "nav/reload.svg"
+        iconName: root.loading ? "" : "svg/nav/reload.svg"
         glyph: root.loading ? "✕" : ""
         bridge: root.bridge
         tip: root.loading ? "Stop" : "Reload"
@@ -84,7 +84,7 @@ RowLayout {
 
     NavButton {
         visible: root.canPip || root.pipActive
-        iconName: "pip/pip.svg"
+        iconName: "svg/pip/pip.svg"
         bridge: root.bridge
         tip: root.pipActive ? "Exit Picture in Picture" : "Picture in Picture"
         onClicked: root.pipRequested()
@@ -110,7 +110,7 @@ RowLayout {
             anchors.verticalCenter: parent.verticalCenter
             visible: root.secure
             bridge: root.bridge
-            iconName: "lock/lock.svg"
+            iconName: "svg/lock/lock.svg"
             color: Theme.textInactive
             size: 14
         }
@@ -121,7 +121,7 @@ RowLayout {
             anchors.verticalCenter: parent.verticalCenter
             visible: root.insecure
             bridge: root.bridge
-            iconName: "lock/lock-open.svg"
+            iconName: "svg/lock/lock-open.svg"
             color: "#E00000"
             size: 14
         }

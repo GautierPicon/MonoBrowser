@@ -9,7 +9,7 @@ from PyQt6.QtWebEngineCore import (
 from monobrowser import session
 from monobrowser.utils import assets_path
 
-ADBLOCK_HOSTS_PATH = assets_path("adblock/hosts.txt")
+ADBLOCK_HOSTS_PATH = assets_path("hosts.txt")
 
 _DOMAIN_RE = re.compile(
     r"^(?=.{1,253}$)([a-z0-9_]([a-z0-9_-]{0,61}[a-z0-9_])?\.)+[a-z0-9-]{2,63}$"

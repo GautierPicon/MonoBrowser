@@ -46,25 +46,25 @@ def _theme_attr(effective: str) -> str:
 
 @lru_cache(maxsize=1)
 def _icon_data_uri() -> str:
-    b64 = base64.b64encode(assets_path("icon.png").read_bytes()).decode()
+    b64 = base64.b64encode(assets_path("icons/icon.png").read_bytes()).decode()
     return f"data:image/png;base64,{b64}"
 
 
 @lru_cache(maxsize=1)
 def _globe_data_uri() -> str:
-    return utils.icon_data_url("globe.svg", "#86868b")
+    return utils.icon_data_url("svg/globe.svg", "#86868b")
 
 
 @lru_cache(maxsize=1)
 def _mono_data_uri() -> str:
-    svg = assets_path("mono.svg").read_text(encoding="utf-8")
+    svg = assets_path("svg/mono.svg").read_text(encoding="utf-8")
     svg = svg.replace('stroke="#000000"', 'stroke="#86868b"')
     encoded = base64.b64encode(svg.encode("utf-8")).decode()
     return f"data:image/svg+xml;base64,{encoded}"
 
 
 def _appearance_icon(name: str) -> str:
-    return utils.icon_data_url(f"appearance/{name}.svg", "#86868b")
+    return utils.icon_data_url(f"svg/appearance/{name}.svg", "#86868b")
 
 
 def version_html(theme: str = "system") -> str:

@@ -39,7 +39,7 @@ def test_internal_action_and_param() -> None:
 
 def test_icon_url_replaces_current_color() -> None:
     bridge = Bridge()
-    url = bridge.iconUrl("lock/lock.svg", "#123456")
+    url = bridge.iconUrl("svg/lock/lock.svg", "#123456")
     assert url.startswith("data:image/svg+xml;base64,")
 
 
