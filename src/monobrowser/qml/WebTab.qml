@@ -10,24 +10,20 @@ WebEngineView {
     property bool cosmeticCss: false
 
     readonly property string adblockCosmeticSource:
-        "(function () { if (document.getElementById('adblock-cosmetic-style')) { return; } var s = document.createElement('style'); s.id = 'adblock-cosmetic-style'; var c = 'iframe[src*=doubleclick.net],iframe[src*=googlesyndication.com],iframe[src*=googleadservices.com],iframe[src*=adservice.google.com],iframe[src*=amazon-adsystem.com],iframe[src*=adnxs.com],iframe[src*=taboola.com],iframe[src*=outbrain.com],ins.adsbygoogle,iframe[id^=aswift],iframe[id^=google_ads],div[id^=div-gpt-ad],div[id^=google_ad]'; s.textContent = c + '{display:none !important}'; (document.head || document.documentElement).appendChild(s); })()"
-
-    function updateUserScripts() {
-        if (!view.cosmeticCss) {
-            view.userScripts.collection = []
-            return
-        }
-        view.userScripts.collection = [{
-            name: "adblock-cosmetic-css",
-            injectionPoint: WebEngineScript.DocumentReady,
-            worldId: WebEngineScript.ApplicationWorld,
-            runsOnSubFrames: true,
-            sourceCode: view.adblockCosmeticSource
-        }]
-    }
-
-    onCosmeticCssChanged: updateUserScripts()
-    Component.onCompleted: updateUserScripts()
+        "(function () {"
+        + " function inject () {"
+        + "   if (document.getElementById('adblock-cosmetic-style')) return true;"
+        + "   var target = document.head || document.documentElement;"
+        + "   if (!target) return false;"
+        + "   var s = document.createElement('style');"
+        + "   s.id = 'adblock-cosmetic-style';"
+        + "   var c = 'iframe[src*=\"doubleclick.net\"],iframe[src*=\"googlesyndication.com\"],iframe[src*=\"googleadservices.com\"],iframe[src*=\"adservice.google.com\"],iframe[src*=\"amazon-adsystem.com\"],iframe[src*=\"adnxs.com\"],iframe[src*=\"taboola.com\"],iframe[src*=\"outbrain.com\"],ins.adsbygoogle,iframe[id^=\"aswift\"],iframe[id^=\"google_ads\"],div[id^=\"div-gpt-ad\"],div[id^=\"google_ad\"],.adsbygoogle,ins[data-ad-client]';"
+        + "   s.textContent = c + '{display:none !important}';"
+        + "   target.appendChild(s);"
+        + "   return true;"
+        + " }"
+        + " if (!inject()) document.addEventListener('DOMContentLoaded', function () { inject(); });"
+        + "})()"
 
     signal pageChanged()
     signal progressChanged()
@@ -42,7 +38,11 @@ WebEngineView {
     }
     onTitleChanged: pageChanged()
     onIconChanged: pageChanged()
-    onLoadingChanged: pageChanged()
+    onLoadingChanged: {
+        pageChanged()
+        if (view.cosmeticCss)
+            view.runJavaScript(view.adblockCosmeticSource)
+    }
     onLoadProgressChanged: progressChanged()
     onLinkHovered: function (url) { hoveredLink(url.toString()) }
 
