@@ -112,10 +112,15 @@ def settings_html(
     html = html.replace("{{#adblock}}", " on" if adblock else "")
     html = html.replace("{{ADBLOCK_ARIA}}", "true" if adblock else "false")
     html = html.replace("{{BLOCKED_COUNT}}", str(adblock_module.blocked_count()))
+    if adblock:
+        html = html.replace("{{COSMETIC_ROW_BEGIN}}", "")
+        html = html.replace("{{COSMETIC_ROW_END}}", "")
+    else:
+        start = html.index("{{COSMETIC_ROW_BEGIN}}")
+        end = html.index("{{COSMETIC_ROW_END}}") + len("{{COSMETIC_ROW_END}}")
+        html = html[:start] + html[end:]
     html = html.replace("{{#cosmetic}}", " on" if adblock_cosmetic else "")
-    html = html.replace(
-        "{{COSMETIC_LABEL}}", "Enabled" if adblock_cosmetic else "Disabled"
-    )
+    html = html.replace("{{COSMETIC_ARIA}}", "true" if adblock_cosmetic else "false")
     count = len(adblock_module.blocked_domains())
     html = html.replace("{{ADBLOCK_COUNT}}", f"{count:,}".replace(",", " "))
     for mode in ("system", "light", "dark"):

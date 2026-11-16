@@ -135,23 +135,6 @@
   .switch.on { background: #5b8def; }
   .switch.on .knob { transform: translateX(18px); }
   .switch.dragging .knob { transition: none; }
-  .btn {
-    flex-shrink: 0;
-    padding: 9px 20px;
-    border: none;
-    border-radius: 8px;
-    background: #e8e8ed;
-    color: #1d1d1f;
-    font-size: 13px;
-    font-weight: 500;
-    font-family: inherit;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background 0.15s, color 0.15s;
-  }
-  .btn:hover { background: #d2d2d7; }
-  .btn.on { background: #5b8def; color: #ffffff; }
-  .btn.on:hover { background: #4a7de0; }
   .theme-dark .adblock-row {
     background: #2c2c2e;
     border-color: #48484a;
@@ -160,8 +143,6 @@
   .theme-dark .adblock-row .url { color: #98989d; }
   .theme-dark .switch { background: #48484a; }
   .theme-dark .switch .knob { background: #f5f5f7; }
-  .theme-dark .btn { background: #3a3a3c; color: #f5f5f7; }
-  .theme-dark .btn:hover { background: #48484a; }
 </style>
 </head>
 <body>
@@ -212,17 +193,18 @@
          aria-checked="{{ADBLOCK_ARIA}}"
          href="https://monobrowser.internal/set-adblock?toggle" aria-label="Block ads"><span class="knob"></span></a>
     </div>
-    <div class="adblock-row">
+    {{COSMETIC_ROW_BEGIN}}<div class="adblock-row">
       <div class="adblock-text">
         <div class="label">Hide ad elements (CSS)</div>
         <div class="url">Also hide ad containers left by blocked requests</div>
       </div>
-      <a class="btn{{#cosmetic}}" href="https://monobrowser.internal/set-adblock-cosmetic?toggle">{{COSMETIC_LABEL}}</a>
-    </div>
+      <a class="switch{{#cosmetic}}" id="cosmetic-switch" role="switch"
+         aria-checked="{{COSMETIC_ARIA}}"
+         href="https://monobrowser.internal/set-adblock-cosmetic?toggle" aria-label="Hide ad elements"><span class="knob"></span></a>
+    </div>{{COSMETIC_ROW_END}}
   </div>
   <script>
-    (function () {
-      var el = document.getElementById('adblock-switch');
+    function attachSwitch(el) {
       if (!el) return;
       var href = el.getAttribute('href');
       var down = false;
@@ -268,7 +250,9 @@
           window.location.href = href;
         }
       });
-    })();
+    }
+    attachSwitch(document.getElementById('adblock-switch'));
+    attachSwitch(document.getElementById('cosmetic-switch'));
   </script>
   <p class="subtitle subtitle-spaced">Session</p>
   <div class="option-group">

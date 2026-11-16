@@ -159,12 +159,17 @@ def test_settings_html_cosmetic_toggle_row() -> None:
     marker = 'href="https://monobrowser.internal/set-adblock-cosmetic?toggle"'
 
     html = about_pages.settings_html("google", True, "system", True, True)
-    line = next(ln for ln in html.splitlines() if marker in ln)
-    assert 'class="btn on"' in line
-    assert ">Enabled<" in line
+    assert marker in html
+    assert 'class="switch on" id="cosmetic-switch"' in html
+    assert 'aria-checked="true"' in html
     assert "{{" not in html
 
     html = about_pages.settings_html("google", True, "system", True, False)
-    line = next(ln for ln in html.splitlines() if marker in ln)
-    assert 'class="btn on"' not in line
-    assert ">Disabled<" in line
+    assert marker in html
+    assert 'class="switch on" id="cosmetic-switch"' not in html
+    assert 'class="switch" id="cosmetic-switch"' in html
+    assert 'aria-checked="false"' in html
+
+    html = about_pages.settings_html("google", True, "system", False, True)
+    assert marker not in html
+    assert 'id="cosmetic-switch"' not in html
