@@ -13,7 +13,8 @@ Item {
     property bool pipActive: false
     property bool pipDetached: false
     property bool canPip: false
-    property string pipTitle: ""
+    property var pipSnapshot: null
+    property rect pipVideoFrac: Qt.rect(0, 0, 1, 1)
     property var swipeView: null
 
     readonly property Item contentArea: contentAreaItem
@@ -126,35 +127,37 @@ Item {
             height: parent.height - tabstripRow.height - toolbarRow.height - loadingBarItem.implicitHeight
             clip: true
 
-            Rectangle {
+            Item {
                 anchors.fill: parent
                 visible: root.pipDetached
-                color: Theme.toolbarBg
 
-                Column {
-                    anchors.centerIn: parent
-                    spacing: 10
+                Image {
+                    anchors.fill: parent
+                    visible: root.pipSnapshot !== null && String(root.pipSnapshot) !== ""
+                    source: root.pipSnapshot ? String(root.pipSnapshot) : ""
+                    fillMode: Image.Stretch
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    visible: root.pipSnapshot !== null && String(root.pipSnapshot) !== ""
+                    color: "#40000000"
+                }
+
+                Rectangle {
+                    x: parent.width * root.pipVideoFrac.x
+                    y: parent.height * root.pipVideoFrac.y
+                    width: Math.max(0, parent.width * root.pipVideoFrac.width)
+                    height: Math.max(0, parent.height * root.pipVideoFrac.height)
+                    color: "#000000"
 
                     IconImage {
-                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.centerIn: parent
+                        visible: parent.width >= 90 && parent.height >= 56
                         bridge: root.bridge
                         iconName: "svg/pip/pip.svg"
-                        color: Theme.textInactive
+                        color: "#FFFFFF"
                         size: 34
-                    }
-
-                    Text {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: root.pipTitle !== "" ? root.pipTitle : "Playing in Picture in Picture"
-                        font.pixelSize: 13
-                        color: Theme.textInactive
-                    }
-
-                    Text {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: "Press ⌘⇧P to return"
-                        font.pixelSize: 11
-                        color: Theme.textInactive
                     }
                 }
             }

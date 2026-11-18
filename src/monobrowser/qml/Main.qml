@@ -30,6 +30,11 @@ Window {
     property var address: ""
     property var bridge: null
     property var pipView: null
+    property var pipFrame: null
+    property int pipProbeMisses: 0
+    property int pipProbeCooldown: 0
+    property var pipSnapshot: null
+    property rect pipVideoFrac: Qt.rect(0, 0, 1, 1)
     property bool canPip: false
     property bool adblockCosmetic: false
     property var closedTabs: []
@@ -136,32 +141,106 @@ Window {
             && rect[1] + rect[3] <= contentArea.height + 2
     }
 
+    function injectPipPlayerChrome(frame, on, view) {
+        if (!view)
+            return
+        if (frame === null || frame === undefined)
+            frame = view.mainFrame
+        if (!frame)
+            return
+        const script = on ? view.pipHidePlayerChromeScript() : view.pipShowPlayerChromeScript()
+        try {
+            frame.runJavaScript(script, function () {})
+        } catch (e) {}
+        const children = frame.children
+        if (!children)
+            return
+        for (let i = 0; i < children.length; ++i)
+            injectPipPlayerChrome(children[i], on, view)
+    }
+
     function attachPip(view, rect) {
         if (pipView === view || view !== currentView)
             return
         if (pipView !== null)
             exitPip()
-        pipView = view
-        pipWindow.open(view, contentArea, {
-            x: rect[0],
-            y: rect[1],
-            width: rect[2],
-            height: rect[3]
-        })
-        updateVisibility()
-        updateLifecycle(view)
-        linkBar.target = ""
+        const frame = rect[5]
+        injectPipPlayerChrome(frame, true, view)
+        var fracW = Math.max(1, contentArea.width)
+        var fracH = Math.max(1, contentArea.height)
+        pipVideoFrac = Qt.rect(
+            Math.max(0, rect[0] / fracW),
+            Math.max(0, rect[1] / fracH),
+            Math.min(1, rect[2] / fracW),
+            Math.min(1, rect[3] / fracH))
+        try {
+            view.grabToImage(function (result) {
+                pipSnapshot = result.url
+                pipView = view
+                pipFrame = frame
+                pipWindow.open(view, contentArea, {
+                    x: rect[0],
+                    y: rect[1],
+                    width: rect[2],
+                    height: rect[3]
+                })
+                updateVisibility()
+                updateLifecycle(view)
+                linkBar.target = ""
+            })
+        } catch (e) {}
+    }
+
+    function closePip() {
+        const view = pipView
+        const frame = pipFrame
+        if (view && frame) {
+            try {
+                frame.runJavaScript(view.pipPauseScript(), function () {})
+            } catch (e) {}
+        }
+        exitPip()
+    }
+
+    function togglePipPlayback() {
+        const view = pipView
+        const frame = pipFrame
+        if (!view || !frame)
+            return
+        try {
+            frame.runJavaScript(view.pipTogglePlaybackScript(), function () {})
+            pipWindow.playing = !pipWindow.playing
+        } catch (e) {}
+    }
+
+    function seekPip(ratio) {
+        const view = pipView
+        const frame = pipFrame
+        if (!view || !frame)
+            return
+        try {
+            frame.runJavaScript(view.pipSeekScript(ratio), function () {})
+        } catch (e) {}
     }
 
     function exitPip() {
         if (pipView === null)
             return
-        var view = pipView
+        const view = pipView
+        const frame = pipFrame
+        injectPipPlayerChrome(frame, false, view)
         pipView = null
+        pipFrame = null
+        pipSnapshot = null
         pipWindow.release()
+        window.raise()
+        window.requestActivate()
         updateVisibility()
         updateLifecycle(view)
-        if (view === currentView)
+        const index = views.indexOf(view)
+        if (index >= 0 && index !== currentIndex)
+            setCurrentIndex(index)
+        else if (view === currentView)
             view.forceActiveFocus()
         updatePipAvailability()
     }
@@ -169,6 +248,13 @@ Window {
     function applyPipRect(view, rect) {
         if (view !== pipView)
             return
+        pipFrame = rect[5]
+        const duration = rect.length > 8 && isFinite(rect[8]) ? rect[8] : 0
+        const currentTime = rect.length > 7 && isFinite(rect[7]) ? rect[7] : 0
+        const paused = rect.length > 6 && rect[6] === 1
+        pipWindow.playing = !paused
+        pipWindow.duration = duration
+        pipWindow.progressRatio = duration > 0 ? currentTime / duration : 0
         pipWindow.setVideoRect({
             x: rect[0],
             y: rect[1],
@@ -178,8 +264,8 @@ Window {
     }
 
     function refreshPip() {
-        var view = pipView
-        if (view === null || !pipWindow.visible)
+        const view = pipView
+        if (view === null)
             return
         view.probeVideo(function (rect) {
             if (view !== pipView)
@@ -198,14 +284,28 @@ Window {
     }
 
     function updatePipAvailability() {
-        var view = currentView
+        const view = currentView
         if (pipView !== null || !view || !window.active) {
             canPip = false
             return
         }
+        if (pipProbeCooldown > 0) {
+            pipProbeCooldown--
+            return
+        }
         view.probeVideo(function (rect) {
+            const found = rect !== null && rect !== undefined
             if (view === currentView && pipView === null)
-                canPip = rect !== null && rect !== undefined
+                canPip = found
+            if (found) {
+                pipProbeMisses = 0
+                return
+            }
+            pipProbeMisses++
+            if (pipProbeMisses >= 5) {
+                pipProbeMisses = 0
+                pipProbeCooldown = 3
+            }
         })
     }
 
@@ -389,6 +489,8 @@ Window {
     }
 
     function syncView(view) {
+        pipProbeMisses = 0
+        pipProbeCooldown = 0
         var index = view.tabIndex
         if (index < 0)
             return
@@ -470,6 +572,8 @@ Window {
     function setCurrentIndex(index) {
         if (index < 0 || index >= tabs.count)
             return
+        pipProbeMisses = 0
+        pipProbeCooldown = 0
         linkBar.target = ""
         if (findBar.visible)
             findBar.close()
@@ -634,7 +738,8 @@ Window {
         pipActive: window.pipView !== null
         swipeView: window.currentView
         pipDetached: window.pipView !== null && window.pipView === window.currentView
-        pipTitle: window.pipView !== null ? window.pipView.title : ""
+        pipSnapshot: window.pipSnapshot
+        pipVideoFrac: window.pipVideoFrac
         onTabClicked: function (index) { window.setCurrentIndex(index) }
         onFaviconError: function (index) { window.setRole(index, "favicon", "") }
         onTabClosed: function (index) { window.closeTab(index) }
@@ -693,7 +798,7 @@ Window {
     function syncAdblockCosmetic() {
         var on = bridge ? (bridge.adblockEnabled && bridge.adblockCosmetic) : false
         adblockCosmetic = on
-        for (var i = 0; i < views.length; ++i) {
+        for (let i = 0; i < views.length; ++i) {
             if (views[i])
                 views[i].cosmeticCss = on
         }
@@ -725,12 +830,17 @@ Window {
         id: pipWindow
         bridge: window.bridge
         onExitRequested: window.exitPip()
+        onMinimizeRequested: window.exitPip()
+        onCloseRequested: window.closePip()
+        onBackToPageRequested: window.exitPip()
+        onPlayPauseRequested: window.togglePipPlayback()
+        onSeekRequested: function (ratio) { window.seekPip(ratio) }
     }
 
     Timer {
         interval: 1000
         repeat: true
-        running: pipWindow.visible
+        running: window.pipView !== null
         onTriggered: window.refreshPip()
     }
 
