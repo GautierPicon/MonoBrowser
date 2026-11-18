@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Window
-import "chrome"
+import "../chrome"
 
 Window {
     id: root
@@ -129,29 +129,6 @@ Window {
             onActivated: root.closeRequested()
         }
 
-        component ChromeButton: Rectangle {
-            id: button
-
-            property string iconName: ""
-            signal tapped()
-
-            width: 24
-            height: 24
-            radius: 12
-            color: buttonHover.hovered ? "#4D000000" : "transparent"
-
-            IconImage {
-                anchors.centerIn: parent
-                bridge: root.bridge
-                iconName: button.iconName
-                color: "#FFFFFF"
-                size: 13
-            }
-
-            HoverHandler { id: buttonHover; cursorShape: Qt.PointingHandCursor }
-            TapHandler { onTapped: button.tapped() }
-        }
-
         Item {
             id: topBar
             anchors.left: parent.left
@@ -190,11 +167,13 @@ Window {
                 spacing: 4
 
                 ChromeButton {
+                    bridge: root.bridge
                     iconName: "svg/pip/minus.svg"
                     onTapped: root.minimizeRequested()
                 }
 
                 ChromeButton {
+                    bridge: root.bridge
                     iconName: "svg/pip/back-to-page.svg"
                     onTapped: root.backToPageRequested()
                 }
@@ -214,6 +193,7 @@ Window {
 
             ChromeButton {
                 id: closeButton
+                bridge: root.bridge
                 iconName: "svg/tabs/close.svg"
                 anchors.right: parent.right
                 anchors.rightMargin: 8
@@ -319,16 +299,8 @@ Window {
             }
         }
 
-        component Handle: MouseArea {
-            property int edges: Qt.LeftEdge
-            property int shape: Qt.SizeHorCursor
-
-            hoverEnabled: true
-            cursorShape: shape
-            onPressed: root.startSystemResize(edges)
-        }
-
-        Handle {
+        ResizeHandle {
+            windowRef: root
             edges: Qt.LeftEdge
             shape: Qt.SizeHorCursor
             width: 6
@@ -336,7 +308,8 @@ Window {
             anchors.top: parent.top
             anchors.bottom: parent.bottom
         }
-        Handle {
+        ResizeHandle {
+            windowRef: root
             edges: Qt.RightEdge
             shape: Qt.SizeHorCursor
             width: 6
@@ -344,7 +317,8 @@ Window {
             anchors.top: parent.top
             anchors.bottom: parent.bottom
         }
-        Handle {
+        ResizeHandle {
+            windowRef: root
             edges: Qt.TopEdge
             shape: Qt.SizeVerCursor
             height: 6
@@ -352,7 +326,8 @@ Window {
             anchors.left: parent.left
             anchors.right: parent.right
         }
-        Handle {
+        ResizeHandle {
+            windowRef: root
             edges: Qt.BottomEdge
             shape: Qt.SizeVerCursor
             height: 6
@@ -360,7 +335,8 @@ Window {
             anchors.left: parent.left
             anchors.right: parent.right
         }
-        Handle {
+        ResizeHandle {
+            windowRef: root
             edges: Qt.LeftEdge | Qt.TopEdge
             shape: Qt.SizeFDiagCursor
             width: 14
@@ -368,7 +344,8 @@ Window {
             anchors.left: parent.left
             anchors.top: parent.top
         }
-        Handle {
+        ResizeHandle {
+            windowRef: root
             edges: Qt.RightEdge | Qt.BottomEdge
             shape: Qt.SizeFDiagCursor
             width: 14
@@ -376,7 +353,8 @@ Window {
             anchors.right: parent.right
             anchors.bottom: parent.bottom
         }
-        Handle {
+        ResizeHandle {
+            windowRef: root
             edges: Qt.RightEdge | Qt.TopEdge
             shape: Qt.SizeBDiagCursor
             width: 14
@@ -384,7 +362,8 @@ Window {
             anchors.right: parent.right
             anchors.top: parent.top
         }
-        Handle {
+        ResizeHandle {
+            windowRef: root
             edges: Qt.LeftEdge | Qt.BottomEdge
             shape: Qt.SizeBDiagCursor
             width: 14
