@@ -1,5 +1,6 @@
 import QtQuick
 import "chrome"
+import "scripts/pageScripts.js" as PageScripts
 
 Item {
     id: root
@@ -73,7 +74,7 @@ Item {
             return
         if (back ? !currentView.canGoBack : !currentView.canGoForward)
             return
-        currentView.runJavaScript(edgeProbeJs(back, px, py), function (result) {
+        currentView.runJavaScript(PageScripts.edgeProbeJs(back, px, py), function (result) {
             if (result !== "edge")
                 return
             if (back) {
@@ -86,38 +87,6 @@ Item {
         })
     }
 
-    function edgeProbeJs(back, x, y) {
-        return "(function (back, x, y) {"
-            + " function atEdge (el) {"
-            + "   var max = el.scrollWidth - el.clientWidth;"
-            + "   if (max <= 1) return true;"
-            + "   var sl = Math.abs(el.scrollLeft);"
-            + "   return back ? sl < 1 : (max - sl) < 1;"
-            + " }"
-            + " function contained (style) {"
-            + "   var obx = String(style.getPropertyValue('overscroll-behavior-x') || style.getPropertyValue('overscroll-behavior') || '').toLowerCase();"
-            + "   return obx.indexOf('contain') !== -1 || obx.indexOf('none') !== -1;"
-            + " }"
-            + " function blockedElsewhere (style, el) {"
-            + "   var ox = String(style.overflowX || '').toLowerCase();"
-            + "   var scrollable = (ox === 'auto' || ox === 'scroll' || ox === 'overlay') && el.scrollWidth > el.clientWidth + 1;"
-            + "   return scrollable && !atEdge(el);"
-            + " }"
-            + " var el = document.elementFromPoint(x, y);"
-            + " while (el && el.nodeType === 1) {"
-            + "   var style = getComputedStyle(el);"
-            + "   if (contained(style)) return 'contained';"
-            + "   if (blockedElsewhere(style, el)) return 'scroller';"
-            + "   el = el.parentElement;"
-            + " }"
-            + " var root = document.scrollingElement || document.documentElement;"
-            + " if (root) {"
-            + "   if (contained(getComputedStyle(root))) return 'contained';"
-            + "   if (root.scrollWidth > root.clientWidth + 1 && !atEdge(root)) return 'scroller';"
-            + " }"
-            + " return 'edge';"
-            + "})(" + back + ", " + Math.round(x) + ", " + Math.round(y) + ")"
-    }
 
     Rectangle {
         id: bubble
