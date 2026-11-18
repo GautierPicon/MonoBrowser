@@ -92,13 +92,10 @@ class Bridge(QObject):
     def faviconSource(self, icon: str) -> str:
         return utils.svg_favicon_data_uri(icon) or icon
 
-    @pyqtSlot(str, result="QString")
-    def internalAction(self, url: str) -> str:
-        return utils.internal_url_action(url)[0]
-
-    @pyqtSlot(str, result="QString")
-    def internalParam(self, url: str) -> str:
-        return utils.internal_url_action(url)[1]
+    @pyqtSlot(str, result="QVariantList")
+    def internalRoute(self, url: str) -> list[str]:
+        action, param = utils.internal_url_action(url)
+        return [action, param]
 
     @pyqtSlot(str, str, result="QString")
     def errorHtml(self, url: str, reason: str) -> str:

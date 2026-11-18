@@ -16,25 +16,16 @@ def test_resolve_address_uses_search_engine() -> None:
     )
 
 
-def test_internal_action_and_param() -> None:
+def test_internal_route() -> None:
     bridge = Bridge()
-    assert (
-        bridge.internalAction("https://monobrowser.internal/set-search?google")
-        == "set-search"
-    )
-    assert (
-        bridge.internalParam("https://monobrowser.internal/set-search?google")
-        == "google"
-    )
-    assert (
-        bridge.internalAction("https://monobrowser.internal/search?q=hello%20world")
-        == "search"
-    )
-    assert (
-        bridge.internalParam("https://monobrowser.internal/search?q=hello%20world")
-        == "hello world"
-    )
-    assert bridge.internalAction("https://example.com/") == ""
+    assert bridge.internalRoute("https://monobrowser.internal/set-search?google") == [
+        "set-search",
+        "google",
+    ]
+    assert bridge.internalRoute(
+        "https://monobrowser.internal/search?q=hello%20world"
+    ) == ["search", "hello world"]
+    assert bridge.internalRoute("https://example.com/") == ["", ""]
 
 
 def test_icon_url_replaces_current_color() -> None:
