@@ -18,16 +18,17 @@ MIN_WIDTH = 480
 MIN_HEIGHT = 320
 
 
-def _settings() -> QSettings:
-    return QSettings(ORG, APP)
+_SETTINGS = QSettings(ORG, APP)
+
+_adblock_enabled_cache: bool | None = None
 
 
 def restore_enabled() -> bool:
-    return _bool_flag(_settings().value(RESTORE_KEY, True), True)
+    return _bool_flag(_SETTINGS.value(RESTORE_KEY, True), True)
 
 
 def set_restore_enabled(enabled: bool) -> None:
-    _settings().setValue(RESTORE_KEY, bool(enabled))
+    _SETTINGS.setValue(RESTORE_KEY, bool(enabled))
 
 
 def _finite_number(value: Any) -> float | None:
@@ -94,23 +95,29 @@ def _bool_flag(value: Any, default: bool) -> bool:
 
 
 def adblock_enabled() -> bool:
-    return _bool_flag(_settings().value(ADBLOCK_KEY, True), True)
+    global _adblock_enabled_cache
+    if _adblock_enabled_cache is None:
+        _adblock_enabled_cache = _bool_flag(_SETTINGS.value(ADBLOCK_KEY, True), True)
+    return _adblock_enabled_cache
 
 
 def set_adblock_enabled(enabled: bool) -> None:
-    _settings().setValue(ADBLOCK_KEY, bool(enabled))
+    global _adblock_enabled_cache
+    enabled = bool(enabled)
+    _SETTINGS.setValue(ADBLOCK_KEY, enabled)
+    _adblock_enabled_cache = enabled
 
 
 def adblock_cosmetic() -> bool:
-    return _bool_flag(_settings().value(ADBLOCK_COSMETIC_KEY, False), False)
+    return _bool_flag(_SETTINGS.value(ADBLOCK_COSMETIC_KEY, False), False)
 
 
 def set_adblock_cosmetic(enabled: bool) -> None:
-    _settings().setValue(ADBLOCK_COSMETIC_KEY, bool(enabled))
+    _SETTINGS.setValue(ADBLOCK_COSMETIC_KEY, bool(enabled))
 
 
 def theme_mode() -> str:
-    value: Any = _settings().value(THEME_KEY, "system")
+    value: Any = _SETTINGS.value(THEME_KEY, "system")
     mode = value.strip().lower() if isinstance(value, str) else "system"
     return mode if mode in THEME_MODES else "system"
 
@@ -118,12 +125,12 @@ def theme_mode() -> str:
 def set_theme_mode(mode: str) -> None:
     mode = mode.strip().lower()
     if mode in THEME_MODES:
-        _settings().setValue(THEME_KEY, mode)
+        _SETTINGS.setValue(THEME_KEY, mode)
 
 
 def load_state() -> dict[str, Any] | None:
     try:
-        raw: Any = _settings().value(STATE_KEY, None)
+        raw: Any = _SETTINGS.value(STATE_KEY, None)
         if not isinstance(raw, str) or not raw.strip():
             return None
         return _validate(json.loads(raw))
@@ -169,6 +176,7 @@ def save_state(
                 "maximized": bool(maximized),
             },
         }
-        _settings().setValue(STATE_KEY, json.dumps(state))
+        _SETTINGS.setValue(STATE_KEY, json.dumps(state))
+        _SETTINGS.sync()
     except Exception:
         return

@@ -33,7 +33,8 @@ def hosts(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):  # type: ignore[no-u
 def store(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> QSettings:
     ini = tmp_path / "session.ini"
     settings = QSettings(str(ini), QSettings.Format.IniFormat)
-    monkeypatch.setattr(session, "_settings", lambda: settings)
+    monkeypatch.setattr(session, "_SETTINGS", settings)
+    monkeypatch.setattr(session, "_adblock_enabled_cache", None)
     return settings
 
 

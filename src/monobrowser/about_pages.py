@@ -2,6 +2,7 @@ import base64
 import platform
 from functools import lru_cache
 from html import escape
+from pathlib import Path
 from urllib.parse import quote
 
 from PyQt6.QtCore import Qt
@@ -14,6 +15,18 @@ ABOUT_HTML_PATH = resource_path("about-pages/version.html")
 NEWTAB_HTML_PATH = resource_path("about-pages/newtab.html")
 SETTINGS_HTML_PATH = resource_path("about-pages/settings.html")
 ERROR_HTML_PATH = resource_path("about-pages/error.html")
+
+
+@lru_cache(maxsize=4)
+def _read_about(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def _render(path: Path, **subs: str) -> str:
+    html = _read_about(path)
+    for key, value in subs.items():
+        html = html.replace("{{" + key + "}}", value)
+    return html
 
 
 def _common_css(effective: str) -> str:
@@ -69,24 +82,24 @@ def _appearance_icon(name: str) -> str:
 
 def version_html(theme: str = "system") -> str:
     effective = _effective_theme(theme)
-    return (
-        ABOUT_HTML_PATH.read_text(encoding="utf-8")
-        .replace("{{THEME_ATTR}}", _theme_attr(effective))
-        .replace("{{COMMON_CSS}}", _common_css(effective))
-        .replace("{{FAVICON}}", _mono_data_uri())
-        .replace("{{ICON}}", _icon_data_uri())
-        .replace("{{VERSION}}", get_version())
-        .replace("{{ARCHITECTURE}}", platform.machine())
+    return _render(
+        ABOUT_HTML_PATH,
+        THEME_ATTR=_theme_attr(effective),
+        COMMON_CSS=_common_css(effective),
+        FAVICON=_mono_data_uri(),
+        ICON=_icon_data_uri(),
+        VERSION=get_version(),
+        ARCHITECTURE=platform.machine(),
     )
 
 
 def newtab_html(theme: str = "system") -> str:
     effective = _effective_theme(theme)
-    return (
-        NEWTAB_HTML_PATH.read_text(encoding="utf-8")
-        .replace("{{THEME_ATTR}}", _theme_attr(effective))
-        .replace("{{COMMON_CSS}}", _common_css(effective))
-        .replace("{{FAVICON}}", _mono_data_uri())
+    return _render(
+        NEWTAB_HTML_PATH,
+        THEME_ATTR=_theme_attr(effective),
+        COMMON_CSS=_common_css(effective),
+        FAVICON=_mono_data_uri(),
     )
 
 
@@ -100,47 +113,49 @@ def settings_html(
     from monobrowser import adblock as adblock_module
 
     effective = _effective_theme(theme)
-    html = SETTINGS_HTML_PATH.read_text(encoding="utf-8")
-    html = html.replace("{{THEME_ATTR}}", _theme_attr(effective))
-    html = html.replace("{{COMMON_CSS}}", _common_css(effective))
-    html = html.replace("{{FAVICON}}", _mono_data_uri())
-    html = html.replace("{{#google}}", " selected" if engine == "google" else "")
-    html = html.replace(
-        "{{#duckduckgo}}", " selected" if engine == "duckduckgo" else ""
-    )
-    html = html.replace("{{#restore}}", " selected" if restore else "")
-    html = html.replace("{{#adblock}}", " on" if adblock else "")
-    html = html.replace("{{ADBLOCK_ARIA}}", "true" if adblock else "false")
-    html = html.replace("{{BLOCKED_COUNT}}", str(adblock_module.blocked_count()))
-    if adblock:
-        html = html.replace("{{COSMETIC_ROW_BEGIN}}", "")
-        html = html.replace("{{COSMETIC_ROW_END}}", "")
-    else:
-        start = html.index("{{COSMETIC_ROW_BEGIN}}")
-        end = html.index("{{COSMETIC_ROW_END}}") + len("{{COSMETIC_ROW_END}}")
-        html = html[:start] + html[end:]
-    html = html.replace("{{#cosmetic}}", " on" if adblock_cosmetic else "")
-    html = html.replace("{{COSMETIC_ARIA}}", "true" if adblock_cosmetic else "false")
-    count = len(adblock_module.blocked_domains())
-    html = html.replace("{{ADBLOCK_COUNT}}", f"{count:,}".replace(",", " "))
+    subs: dict[str, str] = {
+        "THEME_ATTR": _theme_attr(effective),
+        "COMMON_CSS": _common_css(effective),
+        "FAVICON": _mono_data_uri(),
+        "#google": " selected" if engine == "google" else "",
+        "#duckduckgo": " selected" if engine == "duckduckgo" else "",
+        "#restore": " selected" if restore else "",
+        "#adblock": " on" if adblock else "",
+        "ADBLOCK_ARIA": "true" if adblock else "false",
+        "BLOCKED_COUNT": str(adblock_module.blocked_count()),
+        "#cosmetic": " on" if adblock_cosmetic else "",
+        "COSMETIC_ARIA": "true" if adblock_cosmetic else "false",
+        "ADBLOCK_COUNT": f"{len(adblock_module.blocked_domains()):,}".replace(",", " "),
+        "ICON_SYSTEM": _appearance_icon("system"),
+        "ICON_LIGHT": _appearance_icon("light"),
+        "ICON_DARK": _appearance_icon("dark"),
+    }
     for mode in ("system", "light", "dark"):
-        html = html.replace(f"{{{{#{mode}}}}}", " selected" if theme == mode else "")
-    html = html.replace("{{ICON_SYSTEM}}", _appearance_icon("system"))
-    html = html.replace("{{ICON_LIGHT}}", _appearance_icon("light"))
-    html = html.replace("{{ICON_DARK}}", _appearance_icon("dark"))
+        subs[f"#{mode}"] = " selected" if theme == mode else ""
+    if adblock:
+        subs["COSMETIC_ROW_BEGIN"] = ""
+        subs["COSMETIC_ROW_END"] = ""
+        return _render(SETTINGS_HTML_PATH, **subs)
+    html = _read_about(SETTINGS_HTML_PATH)
+    start = html.find("{{COSMETIC_ROW_BEGIN}}")
+    end = html.find("{{COSMETIC_ROW_END}}")
+    if start != -1 and end != -1:
+        html = html[:start] + html[end + len("{{COSMETIC_ROW_END}}") :]
+    for key, value in subs.items():
+        html = html.replace("{{" + key + "}}", value)
     return html
 
 
 def error_html(url: str, reason: str = "", theme: str = "system") -> str:
     effective = _effective_theme(theme)
     retry = utils.INTERNAL_RETRY_BASE + quote(url, safe="")
-    return (
-        ERROR_HTML_PATH.read_text(encoding="utf-8")
-        .replace("{{THEME_ATTR}}", _theme_attr(effective))
-        .replace("{{COMMON_CSS}}", _common_css(effective))
-        .replace("{{FAVICON}}", _globe_data_uri())
-        .replace("{{ICON}}", _globe_data_uri())
-        .replace("{{URL}}", escape(url))
-        .replace("{{REASON}}", escape(reason))
-        .replace("{{RETRY}}", retry)
+    return _render(
+        ERROR_HTML_PATH,
+        THEME_ATTR=_theme_attr(effective),
+        COMMON_CSS=_common_css(effective),
+        FAVICON=_globe_data_uri(),
+        ICON=_globe_data_uri(),
+        URL=escape(url),
+        REASON=escape(reason),
+        RETRY=retry,
     )

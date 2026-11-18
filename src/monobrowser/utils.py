@@ -45,6 +45,7 @@ def qml_path(name: str) -> Path:
     return Path(__file__).parent / "qml" / name
 
 
+@lru_cache(maxsize=64)
 def icon_data_url(name: str, color: str) -> str:
     try:
         svg = assets_path(name).read_text(encoding="utf-8")
@@ -105,7 +106,10 @@ INTERNAL_SET_ADBLOCK_COSMETIC_BASE = (
 INTERNAL_RETRY_BASE = "https://monobrowser.internal/retry?url="
 
 
-def svg_favicon_data_uri(icon: str) -> str | None:
+_SVG_DATA_URI_CACHE_MAX = 512_000
+
+
+def _svg_favicon_data_uri_cached(icon: str) -> str | None:
     marker = "data:image/svg+xml"
     body = (
         icon[len("image://favicon/") :] if icon.startswith("image://favicon/") else icon
@@ -125,6 +129,17 @@ def svg_favicon_data_uri(icon: str) -> str | None:
     payload = decoded[len(marker + ",") :]
     svg = unquote_to_bytes(payload)
     return "data:image/svg+xml;base64," + base64.b64encode(svg).decode()
+
+
+@lru_cache(maxsize=128)
+def _svg_favicon_data_uri_small(icon: str) -> str | None:
+    return _svg_favicon_data_uri_cached(icon)
+
+
+def svg_favicon_data_uri(icon: str) -> str | None:
+    if len(icon) > _SVG_DATA_URI_CACHE_MAX:
+        return _svg_favicon_data_uri_cached(icon)
+    return _svg_favicon_data_uri_small(icon)
 
 
 def resolve_address_text(text: str, engine: str = DEFAULT_SEARCH_ENGINE) -> str:
