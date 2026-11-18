@@ -46,7 +46,10 @@ def qml_path(name: str) -> Path:
 
 
 def icon_data_url(name: str, color: str) -> str:
-    svg = assets_path(name).read_text(encoding="utf-8")
+    try:
+        svg = assets_path(name).read_text(encoding="utf-8")
+    except OSError:
+        return ""
     svg = svg.replace("currentColor", color)
     encoded = base64.b64encode(svg.encode("utf-8")).decode("ascii")
     return f"data:image/svg+xml;base64,{encoded}"
