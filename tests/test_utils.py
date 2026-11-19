@@ -190,3 +190,30 @@ def test_svg_favicon_data_uri_raw_link_href() -> None:
     svg = base64.b64decode(src.split(",", 1)[1]).decode()
     assert "<svg" in svg
     assert "#00b898" in svg
+
+
+def test_unique_download_path_no_collision(tmp_path: Path) -> None:
+    assert utils.unique_download_path(tmp_path, "file.pdf") == tmp_path / "file.pdf"
+
+
+def test_unique_download_path_deduplicates(tmp_path: Path) -> None:
+    (tmp_path / "file.pdf").write_bytes(b"")
+    assert utils.unique_download_path(tmp_path, "file.pdf") == tmp_path / "file (1).pdf"
+    (tmp_path / "file (1).pdf").write_bytes(b"")
+    assert utils.unique_download_path(tmp_path, "file.pdf") == tmp_path / "file (2).pdf"
+
+
+def test_unique_download_path_without_extension(tmp_path: Path) -> None:
+    (tmp_path / "archive").write_bytes(b"")
+    assert utils.unique_download_path(tmp_path, "archive") == tmp_path / "archive (1)"
+
+
+def test_unique_download_path_dotfile(tmp_path: Path) -> None:
+    (tmp_path / ".dmg").write_bytes(b"")
+    assert utils.unique_download_path(tmp_path, ".dmg") == tmp_path / ".dmg (1)"
+
+
+def test_unique_download_path_strips_directories_and_blank(tmp_path: Path) -> None:
+    assert utils.unique_download_path(tmp_path, "/etc/passwd") == tmp_path / "passwd"
+    assert utils.unique_download_path(tmp_path, "") == tmp_path / "download"
+    assert utils.unique_download_path(tmp_path, "   ") == tmp_path / "download"

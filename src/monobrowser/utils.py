@@ -6,7 +6,7 @@ from functools import lru_cache
 from pathlib import Path
 from urllib.parse import parse_qs, quote, unquote, unquote_to_bytes, urlsplit
 
-from PyQt6.QtCore import QUrl
+from PyQt6.QtCore import QStandardPaths, QUrl
 
 
 def is_bundled() -> bool:
@@ -191,3 +191,32 @@ def internal_url_action(url: str) -> tuple[str, str]:
             return ("retry", target)
         return ("", "")
     return ("", "")
+
+
+def download_directory() -> Path:
+    location = QStandardPaths.writableLocation(
+        QStandardPaths.StandardLocation.DownloadLocation
+    )
+    directory = Path(location) if location else Path.home() / "Downloads"
+    try:
+        directory.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        directory = Path.home()
+    return directory
+
+
+def unique_download_path(directory: Path, filename: str) -> Path:
+    name = Path(filename.replace("\\", "/")).name.strip()
+    if not name or name in (".", ".."):
+        name = "download"
+    candidate = directory / name
+    if not candidate.exists():
+        return candidate
+    stem = Path(name).stem
+    suffix = Path(name).suffix
+    index = 1
+    while True:
+        candidate = directory / f"{stem} ({index}){suffix}"
+        if not candidate.exists():
+            return candidate
+        index += 1
