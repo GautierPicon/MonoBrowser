@@ -186,6 +186,11 @@ Item {
             loadAbout(view, "settings")
             return
         }
+        if (action === "clear-history") {
+            bridge.clearHistory()
+            loadAbout(view, "history")
+            return
+        }
         if (action === "search") {
             if (param !== "")
                 view.url = bridge.resolveAddress(param)
@@ -198,6 +203,7 @@ Item {
         setRole(index, "url", text)
         setRole(index, "loading", view.loading)
         faviconPoller.refreshIcon(view)
+        bridge.recordHistory(text, view.title !== "" ? String(view.title) : "")
 
         if (view !== currentView)
             return
@@ -253,6 +259,8 @@ Item {
             view.loadHtml(bridge.settingsHtml(), "about:settings")
         else if (kind === "version")
             view.loadHtml(bridge.versionHtml(), "about:version")
+        else if (kind === "history")
+            view.loadHtml(bridge.historyHtml(), "about:history")
         else
             view.loadHtml(bridge.newtabHtml(), "about:newtab")
     }
@@ -360,6 +368,8 @@ Item {
             loadAbout(target, "newtab")
         else if (text === "about:settings")
             loadAbout(target, "settings")
+        else if (text === "about:history")
+            loadAbout(target, "history")
         else
             target.url = bridge.resolveAddress(text)
     }
@@ -374,6 +384,8 @@ Item {
                 loadAbout(view, "settings")
             else if (u === "about:version")
                 loadAbout(view, "version")
+            else if (u === "about:history")
+                loadAbout(view, "history")
             else if (u === "about:newtab")
                 loadAbout(view, "newtab")
         }

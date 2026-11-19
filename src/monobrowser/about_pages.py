@@ -1,8 +1,11 @@
 import base64
+import hashlib
 import platform
+from datetime import datetime
 from functools import lru_cache
 from html import escape
 from pathlib import Path
+from typing import Any
 from urllib.parse import quote
 
 from PyQt6.QtCore import Qt
@@ -14,6 +17,7 @@ from monobrowser.utils import assets_path, get_version, resource_path
 ABOUT_HTML_PATH = resource_path("about-pages/version.html")
 NEWTAB_HTML_PATH = resource_path("about-pages/newtab.html")
 SETTINGS_HTML_PATH = resource_path("about-pages/settings.html")
+HISTORY_HTML_PATH = resource_path("about-pages/history.html")
 ERROR_HTML_PATH = resource_path("about-pages/error.html")
 
 
@@ -144,6 +148,49 @@ def settings_html(
     for key, value in subs.items():
         html = html.replace("{{" + key + "}}", value)
     return html
+
+
+def _history_rows(items: list[dict[str, Any]]) -> str:
+    rows: list[str] = []
+    for item in items:
+        url = str(item.get("url", ""))
+        title = str(item.get("title", "")) or url
+        ts = item.get("ts")
+        when = ""
+        if isinstance(ts, (int, float)) and not isinstance(ts, bool) and ts > 0:
+            when = datetime.fromtimestamp(ts).strftime("%d %b %Y · %H:%M")
+        hue = int(hashlib.md5(url.encode("utf-8")).hexdigest(), 16) % 360
+        letter = escape((title.strip() or url)[:1].upper())
+        search = escape(f"{title} {url}".lower(), quote=True)
+        style = f"background:hsl({hue},55%,55%)"
+        monogram = f'<span class="monogram" style="{style}">{letter}</span>'
+        rows.append(
+            f'<a class="entry" data-search="{search}" href="{escape(url, quote=True)}">'
+            f"{monogram}"
+            f'<span class="meta"><span class="title">{escape(title)}</span>'
+            f'<span class="url">{escape(url)}</span></span>'
+            f'<span class="time">{escape(when)}</span>'
+            f"</a>"
+        )
+    return "\n".join(rows)
+
+
+def history_html(theme: str = "system") -> str:
+    from monobrowser import history
+
+    effective = _effective_theme(theme)
+    items = history.entries()
+    count = len(items)
+    return _render(
+        HISTORY_HTML_PATH,
+        THEME_ATTR=_theme_attr(effective),
+        COMMON_CSS=_common_css(effective),
+        FAVICON=_mono_data_uri(),
+        COUNT=f"{count} {'entry' if count == 1 else 'entries'}",
+        ROWS=_history_rows(items),
+        EMPTY_HIDDEN="hidden" if count else "",
+        CLEAR_HIDDEN="" if count else "hidden",
+    )
 
 
 def error_html(url: str, reason: str = "", theme: str = "system") -> str:

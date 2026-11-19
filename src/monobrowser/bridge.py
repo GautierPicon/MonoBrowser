@@ -5,8 +5,14 @@ from typing import Any
 import PyQt6.QtCore as QtCore
 from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
 
-from monobrowser import session, utils
-from monobrowser.about_pages import error_html, newtab_html, settings_html, version_html
+from monobrowser import history, session, utils
+from monobrowser.about_pages import (
+    error_html,
+    history_html,
+    newtab_html,
+    settings_html,
+    version_html,
+)
 
 pyqtProperty = getattr(QtCore, "pyqtProperty")
 
@@ -118,6 +124,18 @@ class Bridge(QObject):
     @pyqtSlot(result="QString")
     def versionHtml(self) -> str:
         return version_html(session.theme_mode())
+
+    @pyqtSlot(result="QString")
+    def historyHtml(self) -> str:
+        return history_html(session.theme_mode())
+
+    @pyqtSlot(str, str)
+    def recordHistory(self, url: str, title: str = "") -> None:
+        history.record(url, title)
+
+    @pyqtSlot()
+    def clearHistory(self) -> None:
+        history.clear()
 
     @pyqtSlot(result="QVariant")
     def loadSessionState(self) -> dict[str, Any]:

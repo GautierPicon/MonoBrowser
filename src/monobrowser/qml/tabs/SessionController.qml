@@ -30,11 +30,17 @@ Item {
         }
         for (let i = 0; i < urls.length; ++i) {
             let u = String(urls[i])
-            if (u === "about:settings" || u === "about:version") {
+            if (u === "about:settings" || u === "about:version" || u === "about:history") {
                 let aboutIndex = host.addTab()
                 let aboutView = host.viewAt(aboutIndex)
-                if (aboutView)
-                    host.loadAbout(aboutView, u === "about:version" ? "version" : "settings")
+                if (aboutView) {
+                    let kind = "settings"
+                    if (u === "about:version")
+                        kind = "version"
+                    else if (u === "about:history")
+                        kind = "history"
+                    host.loadAbout(aboutView, kind)
+                }
             } else if (u === "" || u.indexOf("about:") === 0
                        || u.indexOf("https://monobrowser.internal") === 0) {
                 host.addTab()

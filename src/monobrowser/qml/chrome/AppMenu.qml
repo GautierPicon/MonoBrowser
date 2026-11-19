@@ -140,6 +140,10 @@ Item {
             onTriggered: root.windowRef.togglePip()
         }
         Entry {
+            text: "History"
+            onTriggered: root.windowRef.openAbout("history")
+        }
+        Entry {
             text: "Settings"
             shortcut: "⌘,"
             onTriggered: root.windowRef.openAbout("settings")
