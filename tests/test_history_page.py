@@ -44,6 +44,24 @@ def test_history_html_escapes_url_and_title(store: QSettings) -> None:
     assert 'onerror="alert(2)">' not in html
 
 
+def test_history_html_renders_favicon(store: QSettings) -> None:
+    history.record(
+        "https://example.com/", "Example Site", "https://example.com/favicon.ico"
+    )
+    html = about_pages.history_html()
+    assert 'class="favicon"' in html
+    assert 'src="https://example.com/favicon.ico"' in html
+
+
+def test_history_html_falls_back_to_monogram_without_icon(
+    store: QSettings,
+) -> None:
+    history.record("https://example.com/", "Example Site")
+    html = about_pages.history_html()
+    assert 'class="favicon"' not in html
+    assert 'class="monogram"' in html
+
+
 def test_history_html_search_data_attribute(store: QSettings) -> None:
     history.record("https://Example.com/Path", "My Title")
     html = about_pages.history_html()

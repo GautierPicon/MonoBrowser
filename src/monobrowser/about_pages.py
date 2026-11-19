@@ -164,9 +164,16 @@ def _history_rows(items: list[dict[str, Any]]) -> str:
         search = escape(f"{title} {url}".lower(), quote=True)
         style = f"background:hsl({hue},55%,55%)"
         monogram = f'<span class="monogram" style="{style}">{letter}</span>'
+        icon = str(item.get("icon", "") or "")
+        icon_html = ""
+        if icon:
+            icon_html = (
+                f'<img class="favicon" src="{escape(icon, quote=True)}"'
+                f' loading="lazy" alt="" onerror="this.remove()">'
+            )
         rows.append(
             f'<a class="entry" data-search="{search}" href="{escape(url, quote=True)}">'
-            f"{monogram}"
+            f'<span class="icon-wrap">{monogram}{icon_html}</span>'
             f'<span class="meta"><span class="title">{escape(title)}</span>'
             f'<span class="url">{escape(url)}</span></span>'
             f'<span class="time">{escape(when)}</span>'

@@ -129,9 +129,9 @@ class Bridge(QObject):
     def historyHtml(self) -> str:
         return history_html(session.theme_mode())
 
-    @pyqtSlot(str, str)
-    def recordHistory(self, url: str, title: str = "") -> None:
-        history.record(url, title)
+    @pyqtSlot(str, str, str)
+    def recordHistory(self, url: str, title: str = "", icon: str = "") -> None:
+        history.record(url, title, icon)
 
     @pyqtSlot()
     def clearHistory(self) -> None:

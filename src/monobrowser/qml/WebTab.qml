@@ -9,6 +9,7 @@ WebEngineView {
     property var pendingRequest: null
     property bool certificateError: false
     property bool cosmeticCss: false
+    property string historyIconHref: ""
 
     signal pageChanged()
     signal progressChanged()
@@ -21,6 +22,7 @@ WebEngineView {
 
     onUrlChanged: {
         certificateError = false
+        historyIconHref = ""
         pageChanged()
     }
     onTitleChanged: pageChanged()

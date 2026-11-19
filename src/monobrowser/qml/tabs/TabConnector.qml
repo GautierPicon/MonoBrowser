@@ -26,9 +26,13 @@ QtObject {
             if (info.status === WebEngineView.LoadSucceededStatus) {
                 poller.armIconPoll(view)
                 view.runJavaScript(PageScripts.iconLinkScript(), function (href) {
-                    if (href === undefined || href === null || String(href) === "")
+                    if (href === undefined || href === null || String(href) === "") {
+                        view.historyIconHref = ""
                         return
+                    }
+                    view.historyIconHref = String(href)
                     poller.refreshIcon(view, String(href))
+                    view.pageChanged()
                 })
             }
             if (info.status !== WebEngineView.LoadFailedStatus)

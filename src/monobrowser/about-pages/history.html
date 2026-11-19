@@ -55,14 +55,22 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 8px 12px;
+    padding: 6px 8px;
     border-radius: 8px;
     text-decoration: none;
     color: inherit;
     transition: background 0.12s;
   }
   .entry:hover { background: rgba(0,0,0,0.05); }
+  .icon-wrap {
+    position: relative;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+  }
   .monogram {
+    position: absolute;
+    inset: 0;
     width: 28px;
     height: 28px;
     border-radius: 50%;
@@ -72,9 +80,18 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
     text-transform: uppercase;
   }
+  .favicon {
+    position: absolute;
+    inset: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    object-fit: contain;
+    background: #ffffff;
+  }
+  .theme-dark .favicon { background: #2c2c2e; }
   .meta {
     flex: 1;
     min-width: 0;

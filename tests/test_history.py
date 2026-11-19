@@ -51,6 +51,30 @@ def test_record_dedupes_consecutive_same_url(store: QSettings) -> None:
     assert items[0]["title"] == "New title"
 
 
+def test_record_stores_and_backfills_icon(store: QSettings) -> None:
+    history.record("https://example.com/", "Example")
+    assert history.entries()[0]["icon"] == ""
+    history.record("https://example.com/", "Example", "https://example.com/favicon.ico")
+    assert history.entries()[0]["icon"] == "https://example.com/favicon.ico"
+
+
+def test_record_keeps_existing_icon_when_none_provided(store: QSettings) -> None:
+    history.record("https://example.com/", "Example", "https://example.com/favicon.ico")
+    history.record("https://example.com/", "Example")
+    assert history.entries()[0]["icon"] == "https://example.com/favicon.ico"
+
+
+def test_record_rejects_non_http_icon(store: QSettings) -> None:
+    history.record("https://example.com/", "Example", "javascript:alert(1)")
+    assert history.entries()[0]["icon"] == ""
+    history.record(
+        "https://example.com/",
+        "Example",
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB",
+    )
+    assert history.entries()[0]["icon"].startswith("data:image/png;")
+
+
 def test_record_same_url_with_empty_title_keeps_title(store: QSettings) -> None:
     history.record("https://example.com/", "Example")
     history.record("https://example.com/", "")

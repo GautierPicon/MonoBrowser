@@ -11,6 +11,8 @@ HISTORY_KEY = "history"
 MAX_HISTORY = 100
 MAX_URL_LENGTH = 4096
 MAX_TITLE_LENGTH = 512
+MAX_ICON_LENGTH = 16384
+ICON_SCHEMES = ("https://", "http://", "data:image/")
 MIN_TS = 0
 
 _SETTINGS = QSettings(ORG, APP)
@@ -26,6 +28,18 @@ def _is_recordable(url: str) -> bool:
     )
 
 
+def _valid_icon(value: Any) -> str:
+    if not isinstance(value, str):
+        return ""
+    icon = value.strip()
+    if not icon or len(icon) > MAX_ICON_LENGTH:
+        return ""
+    for scheme in ICON_SCHEMES:
+        if icon.startswith(scheme):
+            return icon
+    return ""
+
+
 def _valid_entry(item: Any) -> dict[str, Any] | None:
     if not isinstance(item, dict):
         return None
@@ -37,13 +51,14 @@ def _valid_entry(item: Any) -> dict[str, Any] | None:
         return None
     title = item.get("title")
     title = title.strip()[:MAX_TITLE_LENGTH] if isinstance(title, str) else ""
+    icon = _valid_icon(item.get("icon"))
     ts = item.get("ts")
     if isinstance(ts, bool) or not isinstance(ts, (int, float)):
         ts = 0
     if not math.isfinite(float(ts)):
         ts = 0
     ts = int(max(MIN_TS, float(ts)))
-    return {"url": url, "title": title or url, "ts": ts}
+    return {"url": url, "title": title or url, "ts": ts, "icon": icon}
 
 
 def _load() -> list[dict[str, Any]]:
@@ -76,22 +91,27 @@ def entries() -> list[dict[str, Any]]:
     return _load()
 
 
-def record(url: Any, title: Any = "") -> bool:
+def record(url: Any, title: Any = "", icon: Any = "") -> bool:
     if not isinstance(url, str):
         return False
     clean = url.strip()
     if not _is_recordable(clean):
         return False
     clean_title = title.strip()[:MAX_TITLE_LENGTH] if isinstance(title, str) else ""
+    clean_icon = _valid_icon(icon)
     items = _load()
     now = int(time.time())
     if items and items[0]["url"] == clean:
         if clean_title:
             items[0]["title"] = clean_title
+        if clean_icon and items[0]["icon"] != clean_icon:
+            items[0]["icon"] = clean_icon
         items[0]["ts"] = now
         _save(items)
         return True
-    items.insert(0, {"url": clean, "title": clean_title or clean, "ts": now})
+    items.insert(
+        0, {"url": clean, "title": clean_title or clean, "ts": now, "icon": clean_icon}
+    )
     _save(items)
     return True
 

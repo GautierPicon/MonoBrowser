@@ -203,7 +203,8 @@ Item {
         setRole(index, "url", text)
         setRole(index, "loading", view.loading)
         faviconPoller.refreshIcon(view)
-        bridge.recordHistory(text, view.title !== "" ? String(view.title) : "")
+        bridge.recordHistory(text, view.title !== "" ? String(view.title) : "",
+                             view.historyIconHref || "")
 
         if (view !== currentView)
             return
