@@ -133,6 +133,10 @@ class Bridge(QObject):
     def recordHistory(self, url: str, title: str = "", icon: str = "") -> None:
         history.record(url, title, icon)
 
+    @pyqtSlot(str)
+    def removeHistoryEntry(self, entry_id: str) -> None:
+        history.remove(entry_id)
+
     @pyqtSlot()
     def clearHistory(self) -> None:
         history.clear()

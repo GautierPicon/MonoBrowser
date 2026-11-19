@@ -43,6 +43,32 @@ def test_record_skips_about_and_internal_urls(store: QSettings) -> None:
     assert history.entries() == []
 
 
+def test_entries_carry_unique_ids(store: QSettings) -> None:
+    history.record("https://a.example/", "A")
+    history.record("https://b.example/", "B")
+    items = history.entries()
+    ids = [item["id"] for item in items]
+    assert all(ids)
+    assert len(set(ids)) == len(ids)
+
+
+def test_remove_deletes_only_the_targeted_entry(store: QSettings) -> None:
+    history.record("https://a.example/", "A")
+    history.record("https://b.example/", "B")
+    history.record("https://a.example/", "A again")
+    items = history.entries()
+    target = items[1]["id"]
+    assert history.remove(target) is True
+    items = history.entries()
+    assert [item["url"] for item in items] == [
+        "https://a.example/",
+        "https://a.example/",
+    ]
+    assert history.remove(target) is False
+    assert history.remove("") is False
+    assert history.remove(123) is False
+
+
 def test_record_dedupes_consecutive_same_url(store: QSettings) -> None:
     history.record("https://example.com/", "Old title")
     history.record("https://example.com/", "New title")
@@ -144,5 +170,19 @@ def test_internal_url_action_clear_history() -> None:
     ) == ("clear-history", "")
     assert internal_url_action("https://monobrowser.internal/clear-history?") == (
         "clear-history",
+        "",
+    )
+
+
+def test_internal_url_action_remove_history() -> None:
+    assert internal_url_action(
+        "https://monobrowser.internal/remove-history?id=abc123"
+    ) == ("remove-history", "abc123")
+    assert internal_url_action("https://monobrowser.internal/remove-history?") == (
+        "",
+        "",
+    )
+    assert internal_url_action("https://monobrowser.internal/remove-history?id=") == (
+        "",
         "",
     )

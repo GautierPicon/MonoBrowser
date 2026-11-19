@@ -1,6 +1,7 @@
 import json
 import math
 import time
+import uuid
 from typing import Any
 
 from PyQt6.QtCore import QSettings
@@ -58,7 +59,11 @@ def _valid_entry(item: Any) -> dict[str, Any] | None:
     if not math.isfinite(float(ts)):
         ts = 0
     ts = int(max(MIN_TS, float(ts)))
-    return {"url": url, "title": title or url, "ts": ts, "icon": icon}
+    entry_id = item.get("id")
+    entry_id = entry_id.strip() if isinstance(entry_id, str) else ""
+    if not entry_id or len(entry_id) > 64:
+        entry_id = uuid.uuid4().hex
+    return {"url": url, "title": title or url, "ts": ts, "icon": icon, "id": entry_id}
 
 
 def _load() -> list[dict[str, Any]]:
@@ -70,10 +75,16 @@ def _load() -> list[dict[str, Any]]:
         if not isinstance(data, list):
             return []
         items: list[dict[str, Any]] = []
+        migrated = False
         for entry in data[:MAX_HISTORY]:
+            had_id = isinstance(entry, dict) and isinstance(entry.get("id"), str)
             clean = _valid_entry(entry)
             if clean is not None:
                 items.append(clean)
+                if not had_id or not entry["id"].strip() or len(entry["id"]) > 64:
+                    migrated = True
+        if migrated:
+            _save(items)
         return items
     except Exception:
         return []
@@ -110,9 +121,30 @@ def record(url: Any, title: Any = "", icon: Any = "") -> bool:
         _save(items)
         return True
     items.insert(
-        0, {"url": clean, "title": clean_title or clean, "ts": now, "icon": clean_icon}
+        0,
+        {
+            "url": clean,
+            "title": clean_title or clean,
+            "ts": now,
+            "icon": clean_icon,
+            "id": uuid.uuid4().hex,
+        },
     )
     _save(items)
+    return True
+
+
+def remove(entry_id: Any) -> bool:
+    if not isinstance(entry_id, str):
+        return False
+    target = entry_id.strip()
+    if not target:
+        return False
+    items = _load()
+    kept = [item for item in items if item.get("id") != target]
+    if len(kept) == len(items):
+        return False
+    _save(kept)
     return True
 
 

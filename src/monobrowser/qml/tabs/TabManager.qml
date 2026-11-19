@@ -191,6 +191,12 @@ Item {
             loadAbout(view, "history")
             return
         }
+        if (action === "remove-history") {
+            if (param !== "")
+                bridge.removeHistoryEntry(param)
+            loadAbout(view, "history")
+            return
+        }
         if (action === "search") {
             if (param !== "")
                 view.url = bridge.resolveAddress(param)

@@ -44,13 +44,18 @@ def test_history_html_escapes_url_and_title(store: QSettings) -> None:
     assert 'onerror="alert(2)">' not in html
 
 
-def test_history_html_renders_favicon(store: QSettings) -> None:
+def test_history_html_renders_favicon_and_remove_button(
+    store: QSettings,
+) -> None:
     history.record(
         "https://example.com/", "Example Site", "https://example.com/favicon.ico"
     )
     html = about_pages.history_html()
     assert 'class="favicon"' in html
     assert 'src="https://example.com/favicon.ico"' in html
+    assert 'class="remove"' in html
+    entry_id = history.entries()[0]["id"]
+    assert f"remove-history?id={entry_id}" in html
 
 
 def test_history_html_falls_back_to_monogram_without_icon(

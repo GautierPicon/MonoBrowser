@@ -155,6 +155,8 @@ def _history_rows(items: list[dict[str, Any]]) -> str:
     for item in items:
         url = str(item.get("url", ""))
         title = str(item.get("title", "")) or url
+        icon = str(item.get("icon", "") or "")
+        entry_id = str(item.get("id", "") or "")
         ts = item.get("ts")
         when = ""
         if isinstance(ts, (int, float)) and not isinstance(ts, bool) and ts > 0:
@@ -164,20 +166,24 @@ def _history_rows(items: list[dict[str, Any]]) -> str:
         search = escape(f"{title} {url}".lower(), quote=True)
         style = f"background:hsl({hue},55%,55%)"
         monogram = f'<span class="monogram" style="{style}">{letter}</span>'
-        icon = str(item.get("icon", "") or "")
         icon_html = ""
         if icon:
             icon_html = (
                 f'<img class="favicon" src="{escape(icon, quote=True)}"'
                 f' loading="lazy" alt="" onerror="this.remove()">'
             )
+        remove_url = utils.INTERNAL_REMOVE_HISTORY_BASE + quote(entry_id, safe="")
         rows.append(
-            f'<a class="entry" data-search="{search}" href="{escape(url, quote=True)}">'
+            f'<div class="entry" data-search="{search}">'
+            f'<a class="entry-link" href="{escape(url, quote=True)}">'
             f'<span class="icon-wrap">{monogram}{icon_html}</span>'
             f'<span class="meta"><span class="title">{escape(title)}</span>'
             f'<span class="url">{escape(url)}</span></span>'
             f'<span class="time">{escape(when)}</span>'
             f"</a>"
+            f'<a class="remove" href="{escape(remove_url, quote=True)}"'
+            f' title="Remove from history" aria-label="Remove from history">×</a>'
+            f"</div>"
         )
     return "\n".join(rows)
 
