@@ -65,7 +65,7 @@ Window {
         onAddressSubmitted: function (text) { tabManager.navigate(text) }
         onBackRequested: if (window.currentView) window.currentView.goBack()
         onForwardRequested: if (window.currentView) window.currentView.goForward()
-        onReloadRequested: if (window.currentView) window.currentView.reload()
+        onReloadRequested: tabManager.reloadCurrent()
         onStopRequested: if (window.currentView) window.currentView.stop()
         onPipRequested: window.togglePip()
     }
@@ -81,7 +81,7 @@ Window {
     Shortcut { sequences: ["Meta+W"]; onActivated: tabManager.closeTab(tabManager.currentIndex) }
     Shortcut { sequences: ["Meta+L"]; onActivated: tabManager.focusAddress() }
     Shortcut { sequences: ["Meta+Comma"]; onActivated: tabManager.openAbout("settings") }
-    Shortcut { sequences: ["Meta+R"]; onActivated: if (window.currentView) window.currentView.reload() }
+    Shortcut { sequences: ["Meta+R"]; onActivated: tabManager.reloadCurrent() }
     Shortcut { sequences: ["Meta+Alt+Left"]; onActivated: tabManager.cycleTab(-1) }
     Shortcut { sequences: ["Meta+Alt+Right"]; onActivated: tabManager.cycleTab(1) }
     Shortcut { sequences: ["Meta+Shift+P"]; onActivated: window.togglePip() }

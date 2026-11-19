@@ -381,6 +381,18 @@ Item {
             target.url = bridge.resolveAddress(text)
     }
 
+    function reloadCurrent() {
+        var view = currentView
+        if (!view)
+            return
+        var url = String(view.url)
+        if (url === "about:settings" || url === "about:version"
+                || url === "about:history" || url === "about:newtab")
+            loadAbout(view, url.substring(6))
+        else
+            view.reload()
+    }
+
     function reloadAboutPages() {
         for (let i = 0; i < views.length; ++i) {
             let view = views[i]
