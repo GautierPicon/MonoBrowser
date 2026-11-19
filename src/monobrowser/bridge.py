@@ -1,9 +1,11 @@
 """Python <-> QML bridge: exposes headless-safe helpers to the QML layer."""
 
+from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 import PyQt6.QtCore as QtCore
-from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
+from PyQt6.QtCore import QObject, QProcess, pyqtSignal, pyqtSlot
 
 from monobrowser import history, session, utils
 from monobrowser.about_pages import (
@@ -140,6 +142,17 @@ class Bridge(QObject):
     @pyqtSlot()
     def clearHistory(self) -> None:
         history.clear()
+
+    @pyqtSlot(str, str, result="QVariantList")
+    def downloadDestination(self, suggested_name: str, url: str) -> list[str]:
+        name = suggested_name.strip() or Path(urlsplit(url).path).name
+        destination = utils.unique_download_path(utils.download_directory(), name)
+        return [str(destination.parent), destination.name]
+
+    @pyqtSlot(str)
+    def revealDownload(self, path: str) -> None:
+        if path.strip():
+            QProcess.startDetached("open", ["-R", path])
 
     @pyqtSlot(result="QVariant")
     def loadSessionState(self) -> dict[str, Any]:
