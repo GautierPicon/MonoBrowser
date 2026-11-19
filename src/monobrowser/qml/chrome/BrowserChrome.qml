@@ -179,6 +179,16 @@ Item {
                 windowRef: root.windowRef
             }
 
+            DownloadCenter {
+                id: downloadCenterItem
+                anchors.right: parent.right
+                anchors.rightMargin: 12
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 12
+                z: 70
+                bridge: root.bridge
+            }
+
             Rectangle {
                 id: zoomHudItem
                 anchors.horizontalCenter: parent.horizontalCenter
