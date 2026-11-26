@@ -19,6 +19,7 @@ RowLayout {
     property bool completeOnFocus: true
     property int suggestLimit: 8
     property string typedText: ""
+    property string inputIntent: "query"
 
     readonly property bool secure: !certificateError && address.indexOf("https://") === 0
     readonly property bool insecure: certificateError || address.indexOf("http://") === 0
@@ -57,6 +58,7 @@ RowLayout {
     }
 
     function clearSuggestions() {
+        root.inputIntent = "query"
         suggestTimer.stop()
         searchDebounce.stop()
         localModel.clear()
@@ -65,14 +67,18 @@ RowLayout {
     }
 
     function refreshSuggestions() {
-        if (!root.bridge || addressInput.text.trim() === "") {
+        var query = addressInput.text.trim()
+        if (!root.bridge || query === "") {
             root.clearSuggestions()
             return
         }
-        var matches = root.bridge.suggestMatches(addressInput.text.trim(), root.suggestLimit)
+        root.inputIntent = root.bridge.inputIntent(query)
+        var matches = root.bridge.suggestMatches(query, root.suggestLimit)
         localModel.clear()
         for (var i = 0; i < matches.length; ++i) {
             var match = matches[i]
+            if (root.inputIntent === "url" && match.matched !== "url")
+                continue
             localModel.append({
                 url: String(match.url),
                 title: String(match.title)
@@ -83,6 +89,7 @@ RowLayout {
 
     function requestSearchSuggestions() {
         if (!root.bridge || !root.bridge.suggestionsEnabled
+                || root.inputIntent === "url"
                 || addressInput.text.trim() === "")
             return
         root.bridge.requestSuggestions(addressInput.text.trim())
@@ -122,6 +129,20 @@ RowLayout {
                     header: false
                 })
             }
+        }
+        var query = addressInput.text.trim()
+        if (query !== "") {
+            var engine = root.bridge && root.bridge.searchEngine === "google"
+                ? "Google" : "DuckDuckGo"
+            var label = root.inputIntent === "url"
+                ? "Open " + query
+                : "Search " + engine + " for “" + query + "”"
+            suggestModel.append({
+                url: "",
+                title: label,
+                query: query,
+                header: false
+            })
         }
         var restored = -1
         var first = -1
