@@ -6,7 +6,7 @@ from PyQt6.QtWebEngineCore import (
     QWebEngineUrlRequestInterceptor,
 )
 
-from monobrowser import session
+from monobrowser import privacy, session
 from monobrowser.utils import assets_path
 
 ADBLOCK_HOSTS_PATH = assets_path("hosts.txt")
@@ -58,6 +58,7 @@ def blocked_count() -> int:
 class AdblockInterceptor(QWebEngineUrlRequestInterceptor):
     def interceptRequest(self, info: QWebEngineUrlRequestInfo) -> None:
         global _blocked_count
+        privacy.apply_tracking_headers(info)
         if not session.adblock_enabled():
             return
         host = info.requestUrl().host()

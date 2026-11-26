@@ -11,6 +11,7 @@ RESTORE_KEY = "restore_session"
 THEME_KEY = "theme_mode"
 ADBLOCK_KEY = "adblock_enabled"
 ADBLOCK_COSMETIC_KEY = "adblock_cosmetic"
+ANTITRACK_KEY = "antitrack_enabled"
 THEME_MODES = ("system", "light", "dark")
 MAX_URLS = 50
 MAX_URL_LENGTH = 4096
@@ -21,6 +22,7 @@ MIN_HEIGHT = 320
 _SETTINGS = QSettings(ORG, APP)
 
 _adblock_enabled_cache: bool | None = None
+_antitrack_enabled_cache: bool | None = None
 
 
 def restore_enabled() -> bool:
@@ -106,6 +108,22 @@ def set_adblock_enabled(enabled: bool) -> None:
     enabled = bool(enabled)
     _SETTINGS.setValue(ADBLOCK_KEY, enabled)
     _adblock_enabled_cache = enabled
+
+
+def antitrack_enabled() -> bool:
+    global _antitrack_enabled_cache
+    if _antitrack_enabled_cache is None:
+        _antitrack_enabled_cache = _bool_flag(
+            _SETTINGS.value(ANTITRACK_KEY, True), True
+        )
+    return _antitrack_enabled_cache
+
+
+def set_antitrack_enabled(enabled: bool) -> None:
+    global _antitrack_enabled_cache
+    enabled = bool(enabled)
+    _SETTINGS.setValue(ANTITRACK_KEY, enabled)
+    _antitrack_enabled_cache = enabled
 
 
 def adblock_cosmetic() -> bool:
