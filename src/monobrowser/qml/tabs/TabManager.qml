@@ -186,6 +186,11 @@ Item {
             loadAbout(view, "settings")
             return
         }
+        if (action === "set-antitrack") {
+            bridge.antitrackEnabled = !bridge.antitrackEnabled
+            loadAbout(view, "settings")
+            return
+        }
         if (action === "clear-history") {
             bridge.clearHistory()
             loadAbout(view, "history")

@@ -203,6 +203,18 @@
          href="https://monobrowser.internal/set-adblock-cosmetic?toggle" aria-label="Hide ad elements"><span class="knob"></span></a>
     </div>{{COSMETIC_ROW_END}}
   </div>
+  <p class="subtitle subtitle-spaced">Privacy</p>
+  <div class="option-group">
+    <div class="adblock-row">
+      <div class="adblock-text">
+        <div class="label">Send anti-tracking signals</div>
+        <div class="url">Sends DNT: 1 and Sec-GPC: 1 with web requests. Sites choose whether to honour these signals; this does not block trackers or affect the ad blocker.</div>
+      </div>
+      <a class="switch{{#antitrack}}" id="antitrack-switch" role="switch"
+         aria-checked="{{ANTITRACK_ARIA}}"
+         href="https://monobrowser.internal/set-antitrack?toggle" aria-label="Send anti-tracking signals"><span class="knob"></span></a>
+    </div>
+  </div>
   <script>
     function attachSwitch(el) {
       if (!el) return;
@@ -253,6 +265,7 @@
     }
     attachSwitch(document.getElementById('adblock-switch'));
     attachSwitch(document.getElementById('cosmetic-switch'));
+    attachSwitch(document.getElementById('antitrack-switch'));
   </script>
   <p class="subtitle subtitle-spaced">Session</p>
   <div class="option-group">

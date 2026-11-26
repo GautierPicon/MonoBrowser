@@ -113,6 +113,7 @@ def settings_html(
     theme: str = "system",
     adblock: bool = True,
     adblock_cosmetic: bool = False,
+    antitrack: bool = True,
 ) -> str:
     from monobrowser import adblock as adblock_module
 
@@ -129,6 +130,8 @@ def settings_html(
         "BLOCKED_COUNT": str(adblock_module.blocked_count()),
         "#cosmetic": " on" if adblock_cosmetic else "",
         "COSMETIC_ARIA": "true" if adblock_cosmetic else "false",
+        "#antitrack": " on" if antitrack else "",
+        "ANTITRACK_ARIA": "true" if antitrack else "false",
         "ADBLOCK_COUNT": f"{len(adblock_module.blocked_domains()):,}".replace(",", " "),
         "ICON_SYSTEM": _appearance_icon("system"),
         "ICON_LIGHT": _appearance_icon("light"),

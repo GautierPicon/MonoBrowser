@@ -25,6 +25,7 @@ class Bridge(QObject):
     themeModeChanged = pyqtSignal()
     adblockEnabledChanged = pyqtSignal()
     adblockCosmeticChanged = pyqtSignal()
+    antitrackEnabledChanged = pyqtSignal()
 
     def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
@@ -84,6 +85,17 @@ class Bridge(QObject):
             session.set_adblock_cosmetic(enabled)
             self.adblockCosmeticChanged.emit()
 
+    @pyqtProperty(bool, notify=antitrackEnabledChanged)
+    def antitrackEnabled(self) -> bool:
+        return session.antitrack_enabled()
+
+    @antitrackEnabled.setter  # type: ignore[no-redef]
+    def antitrackEnabled(self, enabled: bool) -> None:
+        enabled = bool(enabled)
+        if enabled != session.antitrack_enabled():
+            session.set_antitrack_enabled(enabled)
+            self.antitrackEnabledChanged.emit()
+
     @pyqtProperty(str)
     def version(self) -> str:
         return utils.get_version()
@@ -121,6 +133,7 @@ class Bridge(QObject):
             session.theme_mode(),
             session.adblock_enabled(),
             session.adblock_cosmetic(),
+            antitrack=session.antitrack_enabled(),
         )
 
     @pyqtSlot(result="QString")
