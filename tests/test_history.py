@@ -1,5 +1,7 @@
 import json
+import time
 from pathlib import Path
+from typing import Any
 
 import pytest
 from PyQt6.QtCore import QSettings
@@ -162,6 +164,68 @@ def test_load_wrong_types_drops_invalid_entries(store: QSettings) -> None:
     )
     items = history.entries()
     assert [item["url"] for item in items] == ["https://ok.example/"]
+
+
+def _item(url: str, title: str, ts: float = 0, icon: str = "") -> dict[str, Any]:
+    return {"url": url, "title": title, "ts": ts, "icon": icon, "id": "x"}
+
+
+def test_rank_matches_empty_query_and_clamped_limit() -> None:
+    items = [_item("https://github.com/foo", "GitHub")]
+    assert history.rank_matches(items, "  ") == []
+    assert len(history.rank_matches(items, "git", 0)) == 1
+    assert len(history.rank_matches(items, "git", 999)) == 1
+
+
+def test_rank_matches_prefix_beats_substring() -> None:
+    items = [
+        _item("https://example.com/pages/git.html", "Version control", 100),
+        _item("https://github.com/foo", "GitHub", 0),
+    ]
+    matches = history.rank_matches(items, "git")
+    assert [match["url"] for match in matches] == [
+        "https://github.com/foo",
+        "https://example.com/pages/git.html",
+    ]
+
+
+def test_rank_matches_recency_breaks_ties() -> None:
+    now = time.time()
+    items = [
+        _item("https://old.example/", "Old", now - 10 * 86400),
+        _item("https://new.example/", "New", now),
+    ]
+    matches = history.rank_matches(items, "example")
+    assert matches[0]["url"] == "https://new.example/"
+
+
+def test_rank_matches_dedupes_url_and_ignores_internal() -> None:
+    items = [
+        _item("https://github.com/foo", "Old", 0),
+        _item("https://monobrowser.internal/search?q=git", "Internal", time.time()),
+        _item("https://github.com/foo", "New", time.time()),
+    ]
+    matches = history.rank_matches(items, "git")
+    assert [match["url"] for match in matches] == ["https://github.com/foo"]
+    assert matches[0]["title"] == "New"
+
+
+def test_rank_matches_result_shape() -> None:
+    item = _item("https://github.com/foo", "GitHub", time.time(), "https://x/i.ico")
+    match = history.rank_matches([item], "git")[0]
+    assert match == {
+        "url": "https://github.com/foo",
+        "title": "GitHub",
+        "icon": "https://x/i.ico",
+        "source": "history",
+    }
+
+
+def test_suggest_reads_stored_history(store: QSettings) -> None:
+    history.record("https://github.com/foo", "GitHub")
+    history.record("https://example.com/", "Unrelated")
+    matches = history.suggest("git")
+    assert [match["url"] for match in matches] == ["https://github.com/foo"]
 
 
 def test_internal_url_action_clear_history() -> None:

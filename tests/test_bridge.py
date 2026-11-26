@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from PyQt6.QtCore import QSettings
 
-from monobrowser import session, utils
+from monobrowser import history, session, utils
 from monobrowser.bridge import Bridge
 
 
@@ -19,6 +19,18 @@ def test_resolve_address_uses_search_engine() -> None:
     assert bridge.resolveAddress("chat mignon").startswith(
         "https://www.google.com/search?q="
     )
+
+
+def test_suggest_matches_slot(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    settings = QSettings(str(tmp_path / "history.ini"), QSettings.Format.IniFormat)
+    monkeypatch.setattr(history, "_SETTINGS", settings)
+    history.record("https://github.com/foo", "GitHub")
+
+    bridge = Bridge()
+    matches = bridge.suggestMatches("git", 5)
+    assert len(matches) == 1
+    assert matches[0]["url"] == "https://github.com/foo"
+    assert bridge.suggestMatches("", 5) == []
 
 
 def test_external_url_slots() -> None:
