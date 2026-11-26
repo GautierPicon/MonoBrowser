@@ -84,6 +84,12 @@ def _appearance_icon(name: str) -> str:
     return utils.icon_data_url(f"svg/appearance/{name}.svg", "#86868b")
 
 
+@lru_cache(maxsize=2)
+def _search_engine_icon(name: str) -> str:
+    data = assets_path(f"searchEngine/{name}.png").read_bytes()
+    return "data:image/png;base64," + base64.b64encode(data).decode()
+
+
 def version_html(theme: str = "system") -> str:
     effective = _effective_theme(theme)
     return _render(
@@ -145,6 +151,8 @@ def settings_html(
         "ICON_SYSTEM": _appearance_icon("system"),
         "ICON_LIGHT": _appearance_icon("light"),
         "ICON_DARK": _appearance_icon("dark"),
+        "ICON_GOOGLE": _search_engine_icon("google"),
+        "ICON_DUCKDUCKGO": _search_engine_icon("duckduckgo"),
     }
     for mode in ("system", "light", "dark"):
         subs[f"#{mode}"] = " selected" if theme == mode else ""

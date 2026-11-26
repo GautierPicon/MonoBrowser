@@ -108,6 +108,8 @@
   .segment.selected { background: var(--accent); color: #ffffff; }
   .segment .icon { width: 16px; height: 16px; flex-shrink: 0; }
   .segment.selected .icon { filter: brightness(0) invert(1); }
+  .segment .logo { width: 16px; height: 16px; flex-shrink: 0; border-radius: 3px; }
+  .segment.selected .logo { background: #ffffff; }
   .switch {
     position: relative;
     display: inline-block;
@@ -153,9 +155,13 @@
       </div>
       <div class="segmented" role="radiogroup" aria-label="Search engine">
         <a class="segment{{#google}}" role="radio" aria-checked="{{GOOGLE_ARIA}}"
-           href="https://monobrowser.internal/set-search?google">Google</a>
+           href="https://monobrowser.internal/set-search?google">
+          <img class="logo" src="{{ICON_GOOGLE}}" alt="">Google
+        </a>
         <a class="segment{{#duckduckgo}}" role="radio" aria-checked="{{DUCKDUCKGO_ARIA}}"
-           href="https://monobrowser.internal/set-search?duckduckgo">DuckDuckGo</a>
+           href="https://monobrowser.internal/set-search?duckduckgo">
+          <img class="logo" src="{{ICON_DUCKDUCKGO}}" alt="">DuckDuckGo
+        </a>
       </div>
     </div>
   </div>

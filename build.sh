@@ -30,6 +30,7 @@ uv run pyinstaller \
     --add-data "src/assets/icons/icon.icns:." \
     --add-data "src/assets/icons/icon.png:." \
     --add-data "src/assets/svg:svg" \
+    --add-data "src/assets/searchEngine:searchEngine" \
     --add-data "src/assets/filters:filters" \
     --add-data "pyproject.toml:." \
     --add-data "src/monobrowser/qml:qml" \

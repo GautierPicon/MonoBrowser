@@ -42,6 +42,13 @@ def test_settings_html_antitrack_toggle_row() -> None:
     assert 'aria-checked="false"' in snippet
 
 
+def test_settings_embeds_search_engine_logos() -> None:
+    html = about_pages.settings_html("google")
+    assert html.count('<img class="logo" src="data:image/png;base64,') == 2
+    assert html.count('href="https://monobrowser.internal/set-search?google"') == 1
+    assert html.count('href="https://monobrowser.internal/set-search?duckduckgo"') == 1
+
+
 def test_selected_segment_icon_is_inverted() -> None:
     html = about_pages.settings_html("google")
     assert ".segment.selected .icon { filter: brightness(0) invert(1); }" in html
