@@ -152,6 +152,10 @@ class Bridge(QObject):
     def recordHistory(self, url: str, title: str = "", icon: str = "") -> None:
         history.record(url, title, icon)
 
+    @pyqtSlot(str, int, result="QVariantList")
+    def suggestMatches(self, text: str, limit: int) -> list[dict[str, Any]]:
+        return history.suggest(text, limit)
+
     @pyqtSlot(str)
     def removeHistoryEntry(self, entry_id: str) -> None:
         history.remove(entry_id)

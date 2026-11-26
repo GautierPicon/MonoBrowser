@@ -1,8 +1,10 @@
 import json
 import math
+import re
 import time
 import uuid
 from typing import Any
+from urllib.parse import urlsplit
 
 from PyQt6.QtCore import QSettings
 
@@ -15,6 +17,8 @@ MAX_TITLE_LENGTH = 512
 MAX_ICON_LENGTH = 16384
 ICON_SCHEMES = ("https://", "http://", "data:image/")
 MIN_TS = 0
+MAX_SUGGESTIONS = 8
+MAX_SUGGEST_LIMIT = 20
 
 _SETTINGS = QSettings(ORG, APP)
 
@@ -100,6 +104,70 @@ def _save(items: list[dict[str, Any]]) -> None:
 
 def entries() -> list[dict[str, Any]]:
     return _load()
+
+
+def _match_score(query: str, url: str, title: str, host: str) -> int:
+    if query in (url, title, host):
+        return 4
+    if url.startswith(query) or title.startswith(query) or host.startswith(query):
+        return 3
+    words = re.split(r"[^a-z0-9]+", host + " " + title)
+    if any(word.startswith(query) for word in words if word):
+        return 2
+    if query in url or query in title:
+        return 1
+    return 0
+
+
+def rank_matches(
+    items: list[dict[str, Any]], text: str, limit: int = MAX_SUGGESTIONS
+) -> list[dict[str, Any]]:
+    query = text.strip().lower()
+    if not query:
+        return []
+    if isinstance(limit, bool) or not isinstance(limit, int):
+        limit = MAX_SUGGESTIONS
+    limit = max(1, min(limit, MAX_SUGGEST_LIMIT))
+
+    now = time.time()
+    best: dict[str, tuple[tuple[int, float, int], dict[str, Any]]] = {}
+    for index, item in enumerate(items):
+        url = str(item.get("url", "") or "").strip()
+        if not _is_recordable(url):
+            continue
+        title = str(item.get("title", "") or "") or url
+        try:
+            host = urlsplit(url).hostname or ""
+        except ValueError:
+            host = ""
+        score = _match_score(query, url.lower(), title.lower(), host.lower())
+        if score == 0:
+            continue
+        ts = item.get("ts")
+        if (
+            isinstance(ts, bool)
+            or not isinstance(ts, (int, float))
+            or not math.isfinite(ts)
+        ):
+            ts = 0
+        age_days = max(0.0, (now - float(ts)) / 86400.0)
+        key = (score, 1.0 / (1.0 + age_days / 7.0), -index)
+        entry = {
+            "url": url,
+            "title": title,
+            "icon": str(item.get("icon", "") or ""),
+            "source": "history",
+        }
+        previous = best.get(url)
+        if previous is None or key > previous[0]:
+            best[url] = (key, entry)
+
+    ranked = sorted(best.values(), key=lambda pair: pair[0], reverse=True)
+    return [entry for _, entry in ranked[:limit]]
+
+
+def suggest(text: str, limit: int = MAX_SUGGESTIONS) -> list[dict[str, Any]]:
+    return rank_matches(entries(), text, limit)
 
 
 def record(url: Any, title: Any = "", icon: Any = "") -> bool:
