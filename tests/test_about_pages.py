@@ -42,6 +42,11 @@ def test_settings_html_antitrack_toggle_row() -> None:
     assert 'aria-checked="false"' in snippet
 
 
+def test_selected_segment_icon_is_inverted() -> None:
+    html = about_pages.settings_html("google")
+    assert ".segment.selected .icon { filter: brightness(0) invert(1); }" in html
+
+
 def test_settings_uses_uniform_controls() -> None:
     html = about_pages.settings_html("google")
     assert 'class="option' not in html
