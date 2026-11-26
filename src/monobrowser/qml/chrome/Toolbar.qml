@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -15,9 +16,13 @@ RowLayout {
     property var bridge: null
     property bool canPip: false
     property bool pipActive: false
+    property bool completeOnFocus: true
+    property int suggestLimit: 8
+    property string typedText: ""
 
     readonly property bool secure: !certificateError && address.indexOf("https://") === 0
     readonly property bool insecure: certificateError || address.indexOf("http://") === 0
+    readonly property bool suggestOpen: addressInput.activeFocus && suggestModel.count > 0
 
     signal backRequested()
     signal forwardRequested()
@@ -51,11 +56,54 @@ RowLayout {
         return text
     }
 
+    function clearSuggestions() {
+        suggestTimer.stop()
+        suggestModel.clear()
+    }
+
+    function refreshSuggestions() {
+        if (!root.bridge || addressInput.text.trim() === "") {
+            root.clearSuggestions()
+            return
+        }
+        var matches = root.bridge.suggestMatches(addressInput.text.trim(), root.suggestLimit)
+        suggestModel.clear()
+        for (var i = 0; i < matches.length; ++i) {
+            var match = matches[i]
+            suggestModel.append({
+                url: String(match.url),
+                title: String(match.title)
+            })
+        }
+        suggestView.currentIndex = suggestModel.count > 0 ? 0 : -1
+    }
+
+    function acceptSuggestion(index, navigate) {
+        if (index < 0 || index >= suggestModel.count)
+            return
+        var target = suggestModel.get(index).url
+        addressInput.text = target
+        addressInput.cursorPosition = target.length
+        addressInput.deselect()
+        root.editing = false
+        root.clearSuggestions()
+        if (navigate)
+            root.addressSubmitted(target)
+    }
+
     onAddressChanged: {
+        root.clearSuggestions()
         if (!addressInput.activeFocus)
             addressInput.text = displayAddress(root.address)
         else if (!root.editing)
             addressInput.text = root.address
+    }
+
+    Timer {
+        id: suggestTimer
+        interval: 120
+        repeat: false
+        onTriggered: root.refreshSuggestions()
     }
 
     NavButton {
@@ -142,10 +190,22 @@ RowLayout {
             text: root.displayAddress(root.address)
             selectByMouse: true
 
-            onTextEdited: root.editing = true
+            onTextEdited: {
+                root.editing = true
+                root.typedText = text
+                if (text.trim() === "")
+                    root.clearSuggestions()
+                else
+                    suggestTimer.restart()
+            }
 
             onAccepted: {
                 root.editing = false
+                if (root.suggestOpen && suggestView.currentIndex >= 0) {
+                    root.acceptSuggestion(suggestView.currentIndex, true)
+                    return
+                }
+                root.clearSuggestions()
                 root.addressSubmitted(text)
             }
 
@@ -153,14 +213,47 @@ RowLayout {
                 if (activeFocus) {
                     root.editing = false
                     text = root.address
+                    root.typedText = text
                     selectAll()
+                    if (root.completeOnFocus && text.trim() !== "")
+                        root.refreshSuggestions()
                 } else {
                     root.editing = false
+                    root.clearSuggestions()
                     text = root.displayAddress(root.address)
                 }
             }
 
-            Keys.onEscapePressed: {
+            Keys.onUpPressed: function (event) {
+                if (!root.suggestOpen)
+                    return
+                event.accepted = true
+                suggestView.currentIndex = Math.max(0, suggestView.currentIndex - 1)
+            }
+
+            Keys.onDownPressed: function (event) {
+                if (!root.suggestOpen)
+                    return
+                event.accepted = true
+                suggestView.currentIndex = Math.min(suggestModel.count - 1,
+                                                    suggestView.currentIndex + 1)
+            }
+
+            Keys.onTabPressed: function (event) {
+                if (!root.suggestOpen || suggestView.currentIndex < 0)
+                    return
+                event.accepted = true
+                root.acceptSuggestion(suggestView.currentIndex, false)
+            }
+
+            Keys.onEscapePressed: function (event) {
+                event.accepted = true
+                if (root.suggestOpen) {
+                    root.clearSuggestions()
+                    addressInput.text = root.typedText
+                    addressInput.cursorPosition = root.typedText.length
+                    return
+                }
                 root.editing = false
                 text = root.address
                 focus = false
@@ -170,6 +263,77 @@ RowLayout {
                 anchors.fill: parent
                 acceptedButtons: Qt.NoButton
                 onPressed: addressInput.selectAll()
+            }
+        }
+
+        Rectangle {
+            id: suggestPopup
+            anchors.top: addressBg.bottom
+            anchors.topMargin: 3
+            anchors.left: addressBg.left
+            anchors.right: addressBg.right
+            height: Math.min(suggestView.contentHeight + 2, 320)
+            visible: root.suggestOpen
+            z: 10
+            radius: 8
+            color: Theme.menuBg
+            border.width: 1
+            border.color: Theme.menuBorder
+
+            ListView {
+                id: suggestView
+                anchors.fill: parent
+                anchors.margins: 1
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+                model: ListModel { id: suggestModel }
+
+                delegate: Item {
+                    id: row
+                    required property int index
+                    required property string title
+                    required property string url
+
+                    width: suggestView.width
+                    height: 32
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 4
+                        color: suggestView.currentIndex === row.index ? Theme.menuHover : "transparent"
+                    }
+
+                    Column {
+                        anchors.left: parent.left
+                        anchors.leftMargin: 10
+                        anchors.right: parent.right
+                        anchors.rightMargin: 10
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 1
+
+                        Text {
+                            width: parent.width
+                            text: row.title
+                            color: suggestView.currentIndex === row.index ? Theme.menuHoverText : Theme.menuText
+                            font.pixelSize: 12
+                            elide: Text.ElideRight
+                        }
+
+                        Text {
+                            width: parent.width
+                            text: row.url
+                            color: suggestView.currentIndex === row.index ? Theme.menuHoverText : Theme.menuTextDim
+                            font.pixelSize: 10
+                            elide: Text.ElideRight
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onPressed: suggestView.currentIndex = row.index
+                        onClicked: root.acceptSuggestion(row.index, true)
+                    }
+                }
             }
         }
     }

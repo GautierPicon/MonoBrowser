@@ -85,6 +85,7 @@ Item {
             id: toolbarRow
             width: parent.width
             height: 38
+            z: 1
             color: Theme.toolbarBg
 
             Toolbar {
