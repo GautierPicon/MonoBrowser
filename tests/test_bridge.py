@@ -33,6 +33,43 @@ def test_suggest_matches_slot(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -
     assert bridge.suggestMatches("", 5) == []
 
 
+def test_request_suggestions_is_gated(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    settings = QSettings(str(tmp_path / "session.ini"), QSettings.Format.IniFormat)
+    monkeypatch.setattr(session, "_SETTINGS", settings)
+    monkeypatch.setattr(session, "_antitrack_enabled_cache", None)
+
+    class FakeManager:
+        def __init__(self) -> None:
+            self.calls: list[str] = []
+
+        def get(self, request: object) -> None:
+            self.calls.append(request.url().toString())  # type: ignore[attr-defined]
+            return None
+
+    bridge = Bridge()
+    manager = FakeManager()
+    setattr(bridge, "_suggestions_manager", manager)
+
+    bridge.requestSuggestions("git")
+    assert len(manager.calls) == 1
+    assert manager.calls[0] == "https://duckduckgo.com/ac/?q=git&type=list"
+
+    setattr(bridge, "suggestionsEnabled", False)
+    bridge.requestSuggestions("git")
+    assert len(manager.calls) == 1
+
+    setattr(bridge, "suggestionsEnabled", True)
+    setattr(bridge, "searchEngine", "google")
+    bridge.requestSuggestions("git")
+    assert len(manager.calls) == 1
+
+    setattr(bridge, "searchEngine", "duckduckgo")
+    bridge.requestSuggestions("github.com")
+    assert len(manager.calls) == 1
+
+
 def test_external_url_slots() -> None:
     bridge = Bridge()
     assert bridge.isExternalUrl("mailto:foo@bar") is True

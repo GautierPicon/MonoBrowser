@@ -41,6 +41,24 @@ def test_settings_html_antitrack_toggle_row() -> None:
     assert 'aria-checked="false"' in snippet
 
 
+def test_settings_html_suggestions_toggle_row() -> None:
+    marker = 'href="https://monobrowser.internal/set-suggestions?toggle"'
+    html = about_pages.settings_html("google", True, "system", True, False, True, True)
+    i = html.index(marker)
+    snippet = html[max(0, i - 250) : i + 120]
+    assert 'class="switch on" id="suggestions-switch"' in snippet
+    assert 'aria-checked="true"' in snippet
+    assert "Sends what you type to DuckDuckGo" in html
+    assert "No suggestion requests are sent with Google selected" in html
+    assert "{{" not in html
+
+    html = about_pages.settings_html("google", True, "system", True, False, True, False)
+    i = html.index(marker)
+    snippet = html[max(0, i - 250) : i + 120]
+    assert 'class="switch" id="suggestions-switch"' in snippet
+    assert 'aria-checked="false"' in snippet
+
+
 def test_error_html_escapes_url_and_reason() -> None:
     url = 'https://example.com/<script>alert("x")</script>'
     reason = 'Name not resolved & "host" <unknown>'

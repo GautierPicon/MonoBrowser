@@ -194,6 +194,20 @@ def test_internal_url_action_set_antitrack() -> None:
     )
 
 
+def test_internal_url_action_set_suggestions() -> None:
+    assert internal_url_action(
+        "https://monobrowser.internal/set-suggestions?toggle"
+    ) == ("set-suggestions", "toggle")
+    assert internal_url_action("https://monobrowser.internal/set-suggestions?") == (
+        "",
+        "",
+    )
+    assert internal_url_action("https://monobrowser.internal/set-suggestions?on") == (
+        "",
+        "",
+    )
+
+
 def test_internal_url_action_set_theme() -> None:
     assert internal_url_action("https://monobrowser.internal/set-theme?light") == (
         "set-theme",

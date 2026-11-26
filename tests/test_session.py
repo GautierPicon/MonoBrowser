@@ -159,6 +159,17 @@ def test_antitrack_flag_roundtrip(store: QSettings) -> None:
     assert session.antitrack_enabled() is True
 
 
+def test_suggestions_enabled_default_true(store: QSettings) -> None:
+    assert session.suggestions_enabled() is True
+
+
+def test_suggestions_flag_roundtrip(store: QSettings) -> None:
+    session.set_suggestions_enabled(False)
+    assert session.suggestions_enabled() is False
+    session.set_suggestions_enabled(True)
+    assert session.suggestions_enabled() is True
+
+
 def test_theme_mode_defaults_to_system(store: QSettings) -> None:
     assert session.theme_mode() == "system"
 
