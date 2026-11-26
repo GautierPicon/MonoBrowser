@@ -7,6 +7,28 @@
 <title>Settings</title>
 <style>
   {{COMMON_CSS}}
+  :root {
+    --border: #d2d2d7;
+    --surface: #ffffff;
+    --text: #1d1d1f;
+    --muted: #6e6e73;
+    --accent: #5b8def;
+    --hover: #f0f0f2;
+    --segment-bg: #e9e9ec;
+    --switch-off: #d2d2d7;
+    --knob: #ffffff;
+  }
+  .theme-dark {
+    --border: #48484a;
+    --surface: #2c2c2e;
+    --text: #f5f5f7;
+    --muted: #98989d;
+    --accent: #0a84ff;
+    --hover: #3a3a3c;
+    --segment-bg: #1c1c1e;
+    --switch-off: #48484a;
+    --knob: #f5f5f7;
+  }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
                  Helvetica, Arial, sans-serif;
@@ -15,6 +37,7 @@
     align-items: center;
     min-height: 100vh;
     user-select: none;
+    color: var(--text);
   }
   h1 {
     font-size: 28px;
@@ -22,99 +45,75 @@
     font-weight: 600;
   }
   .subtitle {
-    font-size: 14px;
-    color: #6e6e73;
-    margin-bottom: 32px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin: 28px 0 10px;
+    align-self: center;
   }
-  .subtitle-spaced {
-    margin-top: 36px;
-  }
-  .option .icon {
-    width: 20px;
-    height: 20px;
-    flex-shrink: 0;
-  }
-  .option .check.push {
-    margin-left: auto;
-  }
-  .option-group {
+  .setting-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    min-width: 340px;
+    gap: 10px;
+    width: min(560px, calc(100vw - 48px));
   }
-  .option {
+  .setting-row {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 16px 20px;
-    border: 1px solid #d2d2d7;
-    border-radius: 10px;
-    background: #ffffff;
-    cursor: pointer;
-    text-decoration: none;
-    color: inherit;
-    transition: background 0.15s, border-color 0.15s;
+    gap: 16px;
+    box-sizing: border-box;
+    min-height: 64px;
+    padding: 14px 18px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
   }
-  .option:hover {
-    background: #f0f0f2;
-    border-color: #aeaeb2;
-  }
-  .option.selected {
-    border-color: #5b8def;
-    background: rgba(91,141,239,0.12);
-  }
-  .option .check {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    border: 2px solid #aeaeb2;
-    flex-shrink: 0;
-    transition: border-color 0.15s, background 0.15s;
-  }
-  .option.selected .check {
-    border-color: #5b8def;
-    background: #5b8def;
-    box-shadow: inset 0 0 0 4px #ffffff;
-  }
-  .option .label {
-    font-size: 16px;
-    font-weight: 500;
-  }
-  .option .url {
+  .setting-text { flex: 1; min-width: 0; }
+  .setting-text .label { font-size: 15px; font-weight: 600; }
+  .setting-text .description {
     font-size: 12px;
-    color: #6e6e73;
-    margin-top: 2px;
+    color: var(--muted);
+    margin-top: 3px;
+    line-height: 1.4;
   }
-  .theme-dark .subtitle { color: #98989d; }
-  .theme-dark .option {
-    background: #2c2c2e;
-    border-color: #48484a;
-    color: #f5f5f7;
+  .setting-control { flex: 0 0 44px; display: flex; justify-content: flex-end; }
+  .segmented {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 3px;
+    padding: 3px;
+    border-radius: 10px;
+    background: var(--segment-bg);
   }
-  .theme-dark .option:hover { background: #3a3a3c; border-color: #636366; }
-  .theme-dark .option.selected { background: rgba(91,141,239,0.22); }
-  .theme-dark .option.selected .check { box-shadow: inset 0 0 0 4px #2c2c2e; }
-  .theme-dark .option .url { color: #98989d; }
-  .adblock-row {
+  .segment {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 16px 20px;
-    border: 1px solid #d2d2d7;
-    border-radius: 10px;
-    background: #ffffff;
+    justify-content: center;
+    gap: 6px;
+    box-sizing: border-box;
+    min-width: 116px;
+    height: 30px;
+    padding: 0 12px;
+    border-radius: 8px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s;
   }
-  .adblock-text { flex: 1; min-width: 0; }
-  .adblock-row .label { font-size: 16px; font-weight: 500; }
-  .adblock-row .url { font-size: 12px; color: #6e6e73; margin-top: 2px; }
+  .segment-theme { min-width: 90px; }
+  .segment:hover { background: var(--hover); }
+  .segment.selected { background: var(--accent); color: #ffffff; }
+  .segment .icon { width: 16px; height: 16px; flex-shrink: 0; }
   .switch {
     position: relative;
     display: inline-block;
     width: 44px;
     height: 26px;
     flex-shrink: 0;
-    background: #d2d2d7;
+    background: var(--switch-off);
     border-radius: 13px;
     cursor: pointer;
     transition: background 0.2s;
@@ -127,106 +126,137 @@
     width: 22px;
     height: 22px;
     border-radius: 50%;
-    background: #ffffff;
+    background: var(--knob);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
     transition: transform 0.2s;
     pointer-events: none;
   }
-  .switch.on { background: #5b8def; }
+  .switch.on { background: var(--accent); }
   .switch.on .knob { transform: translateX(18px); }
   .switch.dragging .knob { transition: none; }
-  .theme-dark .adblock-row {
-    background: #2c2c2e;
-    border-color: #48484a;
-    color: #f5f5f7;
+  .switch:focus-visible, .segment:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
-  .theme-dark .adblock-row .url { color: #98989d; }
-  .theme-dark .switch { background: #48484a; }
-  .theme-dark .switch .knob { background: #f5f5f7; }
 </style>
 </head>
 <body>
   <h1>Settings</h1>
+
   <p class="subtitle">Search engine</p>
-  <div class="option-group">
-    <a class="option{{#google}}" href="https://monobrowser.internal/set-search?google">
-      <span class="check"></span>
-      <div>
-        <div class="label">Google</div>
-        <div class="url">google.com</div>
+  <div class="setting-list">
+    <div class="setting-row">
+      <div class="setting-text">
+        <div class="label">Default search engine</div>
+        <div class="description">Used for queries typed in the address bar. Suggestions are only requested from DuckDuckGo.</div>
       </div>
-    </a>
-    <a class="option{{#duckduckgo}}" href="https://monobrowser.internal/set-search?duckduckgo">
-      <span class="check"></span>
-      <div>
-        <div class="label">DuckDuckGo</div>
-        <div class="url">duckduckgo.com</div>
+      <div class="segmented" role="radiogroup" aria-label="Search engine">
+        <a class="segment{{#google}}" role="radio" aria-checked="{{GOOGLE_ARIA}}"
+           href="https://monobrowser.internal/set-search?google">Google</a>
+        <a class="segment{{#duckduckgo}}" role="radio" aria-checked="{{DUCKDUCKGO_ARIA}}"
+           href="https://monobrowser.internal/set-search?duckduckgo">DuckDuckGo</a>
       </div>
-    </a>
-  </div>
-  <p class="subtitle subtitle-spaced">Appearance</p>
-  <div class="option-group">
-    <a class="option{{#system}}" href="https://monobrowser.internal/set-theme?system">
-      <img class="icon" src="{{ICON_SYSTEM}}" alt="">
-      <div class="label">System</div>
-      <span class="check push"></span>
-    </a>
-    <a class="option{{#light}}" href="https://monobrowser.internal/set-theme?light">
-      <img class="icon" src="{{ICON_LIGHT}}" alt="">
-      <div class="label">Light</div>
-      <span class="check push"></span>
-    </a>
-    <a class="option{{#dark}}" href="https://monobrowser.internal/set-theme?dark">
-      <img class="icon" src="{{ICON_DARK}}" alt="">
-      <div class="label">Dark</div>
-      <span class="check push"></span>
-    </a>
-  </div>
-  <p class="subtitle subtitle-spaced">Ad blocking</p>
-  <div class="option-group">
-    <div class="adblock-row">
-      <div class="adblock-text">
-        <div class="label">Block ads</div>
-        <div class="url">EasyList + EasyPrivacy · {{ADBLOCK_COUNT}} domains · {{BLOCKED_COUNT}} blocked so far</div>
-      </div>
-      <a class="switch{{#adblock}}" id="adblock-switch" role="switch"
-         aria-checked="{{ADBLOCK_ARIA}}"
-         href="https://monobrowser.internal/set-adblock?toggle" aria-label="Block ads"><span class="knob"></span></a>
     </div>
-    {{COSMETIC_ROW_BEGIN}}<div class="adblock-row">
-      <div class="adblock-text">
-        <div class="label">Hide ad elements (CSS)</div>
-        <div class="url">Also hide ad containers left by blocked requests</div>
+  </div>
+
+  <p class="subtitle">Appearance</p>
+  <div class="setting-list">
+    <div class="setting-row">
+      <div class="setting-text">
+        <div class="label">Theme</div>
+        <div class="description">System follows the macOS appearance setting.</div>
       </div>
-      <a class="switch{{#cosmetic}}" id="cosmetic-switch" role="switch"
-         aria-checked="{{COSMETIC_ARIA}}"
-         href="https://monobrowser.internal/set-adblock-cosmetic?toggle" aria-label="Hide ad elements"><span class="knob"></span></a>
+      <div class="segmented" role="radiogroup" aria-label="Theme">
+        <a class="segment segment-theme{{#system}}" role="radio" aria-checked="{{SYSTEM_ARIA}}"
+           href="https://monobrowser.internal/set-theme?system">
+          <img class="icon" src="{{ICON_SYSTEM}}" alt="">System
+        </a>
+        <a class="segment segment-theme{{#light}}" role="radio" aria-checked="{{LIGHT_ARIA}}"
+           href="https://monobrowser.internal/set-theme?light">
+          <img class="icon" src="{{ICON_LIGHT}}" alt="">Light
+        </a>
+        <a class="segment segment-theme{{#dark}}" role="radio" aria-checked="{{DARK_ARIA}}"
+           href="https://monobrowser.internal/set-theme?dark">
+          <img class="icon" src="{{ICON_DARK}}" alt="">Dark
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <p class="subtitle">Ad blocking</p>
+  <div class="setting-list">
+    <div class="setting-row">
+      <div class="setting-text">
+        <div class="label">Block ads</div>
+        <div class="description">EasyList + EasyPrivacy · {{ADBLOCK_COUNT}} domains · {{BLOCKED_COUNT}} blocked so far</div>
+      </div>
+      <div class="setting-control">
+        <a class="switch{{#adblock}}" id="adblock-switch" role="switch" aria-checked="{{ADBLOCK_ARIA}}"
+           href="https://monobrowser.internal/set-adblock?toggle" aria-label="Block ads"><span class="knob"></span></a>
+      </div>
+    </div>
+    {{COSMETIC_ROW_BEGIN}}<div class="setting-row">
+      <div class="setting-text">
+        <div class="label">Hide ad elements (CSS)</div>
+        <div class="description">Hides ad containers left behind by blocked requests.</div>
+      </div>
+      <div class="setting-control">
+        <a class="switch{{#cosmetic}}" id="cosmetic-switch" role="switch" aria-checked="{{COSMETIC_ARIA}}"
+           href="https://monobrowser.internal/set-adblock-cosmetic?toggle" aria-label="Hide ad elements"><span class="knob"></span></a>
+      </div>
+    </div>
+    <div class="setting-row">
+      <div class="setting-text">
+        <div class="label">Use EasyList element rules</div>
+        <div class="description">Adds the site-specific element rules from EasyList to the built-in selectors. Never applies the generic rules.</div>
+      </div>
+      <div class="setting-control">
+        <a class="switch{{#cosmetic_rules}}" id="cosmetic-rules-switch" role="switch" aria-checked="{{COSMETIC_RULES_ARIA}}"
+           href="https://monobrowser.internal/set-cosmetic-rules?toggle" aria-label="Use EasyList element rules"><span class="knob"></span></a>
+      </div>
     </div>{{COSMETIC_ROW_END}}
   </div>
-  <p class="subtitle subtitle-spaced">Privacy</p>
-  <div class="option-group">
-    <div class="adblock-row">
-      <div class="adblock-text">
+
+  <p class="subtitle">Privacy</p>
+  <div class="setting-list">
+    <div class="setting-row">
+      <div class="setting-text">
         <div class="label">Send anti-tracking signals</div>
-        <div class="url">Sends DNT: 1 and Sec-GPC: 1 with web requests. Sites choose whether to honour these signals; this does not block trackers or affect the ad blocker.</div>
+        <div class="description">Sends DNT: 1 and Sec-GPC: 1 with web requests. Sites choose whether to honour these signals; this does not block trackers or affect the ad blocker.</div>
       </div>
-      <a class="switch{{#antitrack}}" id="antitrack-switch" role="switch"
-         aria-checked="{{ANTITRACK_ARIA}}"
-         href="https://monobrowser.internal/set-antitrack?toggle" aria-label="Send anti-tracking signals"><span class="knob"></span></a>
+      <div class="setting-control">
+        <a class="switch{{#antitrack}}" id="antitrack-switch" role="switch" aria-checked="{{ANTITRACK_ARIA}}"
+           href="https://monobrowser.internal/set-antitrack?toggle" aria-label="Send anti-tracking signals"><span class="knob"></span></a>
+      </div>
     </div>
-    <div class="adblock-row">
-      <div class="adblock-text">
+    <div class="setting-row">
+      <div class="setting-text">
         <div class="label">Address bar suggestions</div>
-        <div class="url">Sends what you type to DuckDuckGo to show search suggestions. On by default; turning it off stops these requests while local history matches keep working. No suggestion requests are sent with Google selected.</div>
+        <div class="description">Sends what you type to DuckDuckGo to show search suggestions. On by default; turning it off stops these requests while local history matches keep working. No suggestion requests are sent with Google selected.</div>
       </div>
-      <a class="switch{{#suggestions}}" id="suggestions-switch" role="switch"
-         aria-checked="{{SUGGESTIONS_ARIA}}"
-         href="https://monobrowser.internal/set-suggestions?toggle" aria-label="Address bar suggestions"><span class="knob"></span></a>
+      <div class="setting-control">
+        <a class="switch{{#suggestions}}" id="suggestions-switch" role="switch" aria-checked="{{SUGGESTIONS_ARIA}}"
+           href="https://monobrowser.internal/set-suggestions?toggle" aria-label="Address bar suggestions"><span class="knob"></span></a>
+      </div>
     </div>
   </div>
+
+  <p class="subtitle">Session</p>
+  <div class="setting-list">
+    <div class="setting-row">
+      <div class="setting-text">
+        <div class="label">Restore previous session</div>
+        <div class="description">Reopen tabs and window geometry on launch.</div>
+      </div>
+      <div class="setting-control">
+        <a class="switch{{#restore}}" id="restore-switch" role="switch" aria-checked="{{RESTORE_ARIA}}"
+           href="https://monobrowser.internal/set-restore?toggle" aria-label="Restore previous session"><span class="knob"></span></a>
+      </div>
+    </div>
+  </div>
+
   <script>
-    function attachSwitch(el) {
-      if (!el) return;
+    document.querySelectorAll('[role="switch"]').forEach(function (el) {
       var href = el.getAttribute('href');
       var down = false;
       var moved = false;
@@ -271,21 +301,7 @@
           window.location.href = href;
         }
       });
-    }
-    attachSwitch(document.getElementById('adblock-switch'));
-    attachSwitch(document.getElementById('cosmetic-switch'));
-    attachSwitch(document.getElementById('antitrack-switch'));
-    attachSwitch(document.getElementById('suggestions-switch'));
+    });
   </script>
-  <p class="subtitle subtitle-spaced">Session</p>
-  <div class="option-group">
-    <a class="option{{#restore}}" href="https://monobrowser.internal/set-restore?toggle">
-      <span class="check"></span>
-      <div>
-        <div class="label">Restore previous session</div>
-        <div class="url">Reopen tabs and window geometry on launch</div>
-      </div>
-    </a>
-  </div>
 </body>
 </html>

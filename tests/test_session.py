@@ -148,6 +148,14 @@ def test_save_session_slot_arity_matches_qml_call() -> None:
     assert slots[0].parameterCount() == 7
 
 
+def test_cosmetic_rules_default_false_and_roundtrip(store: QSettings) -> None:
+    assert session.cosmetic_rules_enabled() is False
+    session.set_cosmetic_rules_enabled(True)
+    assert session.cosmetic_rules_enabled() is True
+    session.set_cosmetic_rules_enabled(False)
+    assert session.cosmetic_rules_enabled() is False
+
+
 def test_antitrack_enabled_default_true(store: QSettings) -> None:
     assert session.antitrack_enabled() is True
 

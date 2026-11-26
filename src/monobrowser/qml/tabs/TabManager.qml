@@ -187,6 +187,11 @@ Item {
             loadAbout(view, "settings")
             return
         }
+        if (action === "set-cosmetic-rules") {
+            bridge.cosmeticRulesEnabled = !bridge.cosmeticRulesEnabled
+            loadAbout(view, "settings")
+            return
+        }
         if (action === "set-antitrack") {
             bridge.antitrackEnabled = !bridge.antitrackEnabled
             loadAbout(view, "settings")

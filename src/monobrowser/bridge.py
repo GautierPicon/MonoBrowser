@@ -26,6 +26,7 @@ class Bridge(QObject):
     themeModeChanged = pyqtSignal()
     adblockEnabledChanged = pyqtSignal()
     adblockCosmeticChanged = pyqtSignal()
+    cosmeticRulesEnabledChanged = pyqtSignal()
     antitrackEnabledChanged = pyqtSignal()
     suggestionsEnabledChanged = pyqtSignal()
     suggestionsReady = pyqtSignal(str, "QStringList")
@@ -93,6 +94,17 @@ class Bridge(QObject):
         if enabled != session.adblock_cosmetic():
             session.set_adblock_cosmetic(enabled)
             self.adblockCosmeticChanged.emit()
+
+    @pyqtProperty(bool, notify=cosmeticRulesEnabledChanged)
+    def cosmeticRulesEnabled(self) -> bool:
+        return session.cosmetic_rules_enabled()
+
+    @cosmeticRulesEnabled.setter  # type: ignore[no-redef]
+    def cosmeticRulesEnabled(self, enabled: bool) -> None:
+        enabled = bool(enabled)
+        if enabled != session.cosmetic_rules_enabled():
+            session.set_cosmetic_rules_enabled(enabled)
+            self.cosmeticRulesEnabledChanged.emit()
 
     @pyqtProperty(bool, notify=antitrackEnabledChanged)
     def antitrackEnabled(self) -> bool:
@@ -205,6 +217,7 @@ class Bridge(QObject):
             session.adblock_cosmetic(),
             antitrack=session.antitrack_enabled(),
             suggestions=session.suggestions_enabled(),
+            cosmetic_rules=session.cosmetic_rules_enabled(),
         )
 
     @pyqtSlot(result="QString")

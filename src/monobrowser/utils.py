@@ -133,6 +133,7 @@ INTERNAL_SET_ADBLOCK_BASE = "https://monobrowser.internal/set-adblock?"
 INTERNAL_SET_ADBLOCK_COSMETIC_BASE = (
     "https://monobrowser.internal/set-adblock-cosmetic?"
 )
+INTERNAL_SET_COSMETIC_RULES_BASE = "https://monobrowser.internal/set-cosmetic-rules?"
 INTERNAL_SET_ANTITRACK_BASE = "https://monobrowser.internal/set-antitrack?"
 INTERNAL_SET_SUGGESTIONS_BASE = "https://monobrowser.internal/set-suggestions?"
 INTERNAL_CLEAR_HISTORY_BASE = "https://monobrowser.internal/clear-history?"
@@ -206,6 +207,10 @@ def internal_url_action(url: str) -> tuple[str, str]:
     if url.startswith(INTERNAL_SET_ADBLOCK_COSMETIC_BASE):
         if url.partition("?")[2].strip() == "toggle":
             return ("set-adblock-cosmetic", "toggle")
+        return ("", "")
+    if url.startswith(INTERNAL_SET_COSMETIC_RULES_BASE):
+        if url.partition("?")[2].strip() == "toggle":
+            return ("set-cosmetic-rules", "toggle")
         return ("", "")
     if url.startswith(INTERNAL_SET_ANTITRACK_BASE):
         if url.partition("?")[2].strip() == "toggle":

@@ -97,6 +97,21 @@ def test_icon_url_replaces_current_color() -> None:
     assert url.startswith("data:image/svg+xml;base64,")
 
 
+def test_cosmetic_rules_enabled_roundtrip(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    settings = QSettings(str(tmp_path / "session.ini"), QSettings.Format.IniFormat)
+    monkeypatch.setattr(session, "_SETTINGS", settings)
+
+    bridge = Bridge()
+    assert bridge.cosmeticRulesEnabled is False
+    setattr(bridge, "cosmeticRulesEnabled", True)
+    assert bridge.cosmeticRulesEnabled is True
+    marker = 'href="https://monobrowser.internal/set-cosmetic-rules?toggle"'
+    i = bridge.settingsHtml().index(marker)
+    assert 'aria-checked="true"' in bridge.settingsHtml()[max(0, i - 250) : i + 120]
+
+
 def test_antitrack_enabled_roundtrip(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -121,5 +136,5 @@ def test_html_helpers() -> None:
     bridge = Bridge()
     assert "monobrowser.internal/search" in bridge.newtabHtml()
     setattr(bridge, "searchEngine", "google")
-    assert 'class="option selected"' in bridge.settingsHtml()
+    assert 'class="segment selected"' in bridge.settingsHtml()
     assert utils.get_version() in bridge.versionHtml()

@@ -17,11 +17,12 @@ def test_newtab_html_has_search_form() -> None:
 def test_settings_html_marks_selected_engine() -> None:
     google = about_pages.settings_html("google")
     duckduckgo = about_pages.settings_html("duckduckgo")
-    assert 'class="option selected"' in google
-    assert 'class="option selected"' in duckduckgo
-    assert google.index('class="option selected"') != duckduckgo.index(
-        'class="option selected"'
-    )
+    for html, engine in ((google, "google"), (duckduckgo, "duckduckgo")):
+        marker = f'href="https://monobrowser.internal/set-search?{engine}"'
+        i = html.index(marker)
+        snippet = html[max(0, i - 200) : i + 120]
+        assert 'class="segment selected"' in snippet
+        assert 'aria-checked="true"' in snippet
 
 
 def test_settings_html_antitrack_toggle_row() -> None:
@@ -39,6 +40,16 @@ def test_settings_html_antitrack_toggle_row() -> None:
     snippet = html[max(0, i - 250) : i + 120]
     assert 'class="switch" id="antitrack-switch"' in snippet
     assert 'aria-checked="false"' in snippet
+
+
+def test_settings_uses_uniform_controls() -> None:
+    html = about_pages.settings_html("google")
+    assert 'class="option' not in html
+    assert html.count('<a class="switch') == 6
+    assert html.count('role="radiogroup"') == 2
+    assert 'id="restore-switch"' in html
+    assert 'id="cosmetic-rules-switch"' in html
+    assert 'class="setting-row"' in html
 
 
 def test_settings_html_suggestions_toggle_row() -> None:
@@ -102,14 +113,14 @@ def test_settings_html_marks_selected_theme() -> None:
     for mode in ("system", "light", "dark"):
         html = about_pages.settings_html("google", True, mode)
         marker = f'href="https://monobrowser.internal/set-theme?{mode}"'
-        line = next(ln for ln in html.splitlines() if marker in ln)
-        assert 'class="option selected"' in line
+        i = html.index(marker)
+        snippet = html[max(0, i - 220) : i + 120]
+        assert 'class="segment segment-theme selected"' in snippet
+        assert 'aria-checked="true"' in snippet
         for other in ("system", "light", "dark"):
             if other != mode:
-                other_line = next(
-                    ln for ln in html.splitlines() if f"set-theme?{other}" in ln
-                )
-                assert "option selected" not in other_line
+                j = html.index(f"set-theme?{other}")
+                assert 'aria-checked="false"' in html[max(0, j - 220) : j + 120]
 
 
 def test_theme_dark_renders_dark_palette() -> None:

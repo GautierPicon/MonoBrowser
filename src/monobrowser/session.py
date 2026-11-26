@@ -11,6 +11,7 @@ RESTORE_KEY = "restore_session"
 THEME_KEY = "theme_mode"
 ADBLOCK_KEY = "adblock_enabled"
 ADBLOCK_COSMETIC_KEY = "adblock_cosmetic"
+COSMETIC_RULES_KEY = "cosmetic_rules_enabled"
 ANTITRACK_KEY = "antitrack_enabled"
 SUGGESTIONS_KEY = "search_suggestions"
 THEME_MODES = ("system", "light", "dark")
@@ -109,6 +110,14 @@ def set_adblock_enabled(enabled: bool) -> None:
     enabled = bool(enabled)
     _SETTINGS.setValue(ADBLOCK_KEY, enabled)
     _adblock_enabled_cache = enabled
+
+
+def cosmetic_rules_enabled() -> bool:
+    return _bool_flag(_SETTINGS.value(COSMETIC_RULES_KEY, False), False)
+
+
+def set_cosmetic_rules_enabled(enabled: bool) -> None:
+    _SETTINGS.setValue(COSMETIC_RULES_KEY, bool(enabled))
 
 
 def antitrack_enabled() -> bool:

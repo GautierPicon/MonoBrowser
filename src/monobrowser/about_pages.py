@@ -115,6 +115,7 @@ def settings_html(
     adblock_cosmetic: bool = False,
     antitrack: bool = True,
     suggestions: bool = True,
+    cosmetic_rules: bool = False,
 ) -> str:
     from monobrowser import adblock as adblock_module
 
@@ -125,12 +126,17 @@ def settings_html(
         "FAVICON": _mono_data_uri(),
         "#google": " selected" if engine == "google" else "",
         "#duckduckgo": " selected" if engine == "duckduckgo" else "",
-        "#restore": " selected" if restore else "",
+        "GOOGLE_ARIA": "true" if engine == "google" else "false",
+        "DUCKDUCKGO_ARIA": "true" if engine == "duckduckgo" else "false",
+        "#restore": " on" if restore else "",
+        "RESTORE_ARIA": "true" if restore else "false",
         "#adblock": " on" if adblock else "",
         "ADBLOCK_ARIA": "true" if adblock else "false",
         "BLOCKED_COUNT": str(adblock_module.blocked_count()),
         "#cosmetic": " on" if adblock_cosmetic else "",
         "COSMETIC_ARIA": "true" if adblock_cosmetic else "false",
+        "#cosmetic_rules": " on" if cosmetic_rules else "",
+        "COSMETIC_RULES_ARIA": "true" if cosmetic_rules else "false",
         "#antitrack": " on" if antitrack else "",
         "ANTITRACK_ARIA": "true" if antitrack else "false",
         "#suggestions": " on" if suggestions else "",
@@ -142,6 +148,7 @@ def settings_html(
     }
     for mode in ("system", "light", "dark"):
         subs[f"#{mode}"] = " selected" if theme == mode else ""
+        subs[f"{mode.upper()}_ARIA"] = "true" if theme == mode else "false"
     if adblock:
         subs["COSMETIC_ROW_BEGIN"] = ""
         subs["COSMETIC_ROW_END"] = ""
