@@ -70,6 +70,20 @@ def test_request_suggestions_is_gated(
     assert len(manager.calls) == 1
 
 
+def test_input_intent_slot(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    settings = QSettings(str(tmp_path / "history.ini"), QSettings.Format.IniFormat)
+    monkeypatch.setattr(history, "_SETTINGS", settings)
+    history.record("https://github.com/foo", "GitHub")
+    history.record("https://myserver.local/page", "Intranet")
+
+    bridge = Bridge()
+    assert bridge.inputIntent("git") == "query"
+    assert bridge.inputIntent("github.com/foo") == "url"
+    assert bridge.inputIntent("myserver.local") == "url"
+    assert bridge.inputIntent("myserver") == "query"
+    assert bridge.resolveAddress("myserver.local") == "https://myserver.local"
+
+
 def test_external_url_slots() -> None:
     bridge = Bridge()
     assert bridge.isExternalUrl("mailto:foo@bar") is True

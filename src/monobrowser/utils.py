@@ -2,6 +2,7 @@ import base64
 import re
 import sys
 import tomllib
+from collections.abc import Collection
 from functools import lru_cache
 from pathlib import Path
 from urllib.parse import parse_qs, quote, unquote, unquote_to_bytes, urlsplit
@@ -82,6 +83,71 @@ EXTERNAL_SCHEMES = frozenset(
     }
 )
 _SCHEME_RE = re.compile(r"^([a-zA-Z][a-zA-Z0-9+.-]*):")
+_IPV4_RE = re.compile(r"^\d{1,3}(?:\.\d{1,3}){3}$")
+COMMON_TLDS = frozenset(
+    {
+        "com",
+        "org",
+        "net",
+        "edu",
+        "gov",
+        "mil",
+        "int",
+        "io",
+        "dev",
+        "app",
+        "ai",
+        "co",
+        "me",
+        "tv",
+        "xyz",
+        "info",
+        "biz",
+        "online",
+        "site",
+        "tech",
+        "cloud",
+        "blog",
+        "shop",
+        "store",
+        "news",
+        "wiki",
+        "health",
+        "space",
+        "fun",
+        "live",
+        "world",
+        "top",
+        "club",
+        "vip",
+        "fr",
+        "uk",
+        "de",
+        "es",
+        "it",
+        "nl",
+        "be",
+        "ch",
+        "at",
+        "se",
+        "no",
+        "fi",
+        "pl",
+        "ru",
+        "ua",
+        "jp",
+        "kr",
+        "cn",
+        "in",
+        "br",
+        "mx",
+        "ca",
+        "au",
+        "nz",
+        "za",
+        "eu",
+    }
+)
 
 
 def url_scheme(text: str) -> str:
@@ -93,15 +159,54 @@ def is_external_url(text: str) -> bool:
     return url_scheme(text) in EXTERNAL_SCHEMES
 
 
+def url_host(text: str) -> str:
+    value = text.strip()
+    if " " in value:
+        return ""
+    if "://" in value:
+        value = value.split("://", 1)[1]
+    elif value.startswith("//"):
+        value = value[2:]
+    host = value.split("/", 1)[0].split("?", 1)[0].split("#", 1)[0]
+    if "@" in host:
+        host = host.rsplit("@", 1)[1]
+    if host.startswith("["):
+        closing = host.find("]")
+        if closing != -1:
+            return host[1:closing]
+    if ":" in host and host.rsplit(":", 1)[1].isdigit():
+        host = host.rsplit(":", 1)[0]
+    return host.lower().rstrip(".")
+
+
+def input_intent(text: str, known_hosts: Collection[str] = ()) -> str:
+    value = text.strip()
+    if not value:
+        return "query"
+    scheme = url_scheme(value)
+    if scheme in ("http", "https", "file", "ftp", "sftp", "about", "chrome"):
+        return "url"
+    if is_external_url(value):
+        return "url"
+    host = url_host(value)
+    if not host:
+        return "query"
+    if host == "localhost" or _IPV4_RE.match(host):
+        return "url"
+    for known in known_hosts:
+        known = known.lower().rstrip(".")
+        if host == known or host.endswith("." + known) or known.endswith("." + host):
+            return "url"
+    labels = host.split(".")
+    if len(labels) < 2:
+        return "query"
+    if labels[-1] in COMMON_TLDS:
+        return "url"
+    return "query"
+
+
 def is_likely_url(text: str) -> bool:
-    return bool(
-        text.lower().startswith(KNOWN_SCHEMES)
-        or is_external_url(text)
-        or re.search(r"\.[a-zA-Z]{2,}(:\d+)?(/|$)", text)
-        or re.match(r"^[\w-]+\.[\w-]+", text)
-        or text.startswith(("localhost", "127.", "10.", "192.168."))
-        or re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", text)
-    )
+    return input_intent(text) == "url"
 
 
 @lru_cache(maxsize=1)
@@ -177,9 +282,13 @@ def svg_favicon_data_uri(icon: str) -> str | None:
     return _svg_favicon_data_uri_small(icon)
 
 
-def resolve_address_text(text: str, engine: str = DEFAULT_SEARCH_ENGINE) -> str:
+def resolve_address_text(
+    text: str,
+    engine: str = DEFAULT_SEARCH_ENGINE,
+    known_hosts: Collection[str] = (),
+) -> str:
     text = text.strip()
-    if " " in text or not is_likely_url(text):
+    if " " in text or input_intent(text, known_hosts) != "url":
         template = SEARCH_ENGINES.get(engine, SEARCH_ENGINES[DEFAULT_SEARCH_ENGINE])
         return template.format(quote(text))
     return build_url(text).toString()

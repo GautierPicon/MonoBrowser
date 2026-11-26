@@ -218,7 +218,14 @@ def test_rank_matches_result_shape() -> None:
         "title": "GitHub",
         "icon": "https://x/i.ico",
         "source": "history",
+        "matched": "url",
     }
+
+
+def test_rank_matches_marks_title_only_matches() -> None:
+    item = _item("https://example.com/page", "Git notes", time.time())
+    match = history.rank_matches([item], "git")[0]
+    assert match["matched"] == "title"
 
 
 def test_suggest_reads_stored_history(store: QSettings) -> None:

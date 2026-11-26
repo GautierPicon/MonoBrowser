@@ -106,17 +106,26 @@ def entries() -> list[dict[str, Any]]:
     return _load()
 
 
-def _match_score(query: str, url: str, title: str, host: str) -> int:
-    if query in (url, title, host):
-        return 4
-    if url.startswith(query) or title.startswith(query) or host.startswith(query):
-        return 3
-    words = re.split(r"[^a-z0-9]+", host + " " + title)
-    if any(word.startswith(query) for word in words if word):
-        return 2
-    if query in url or query in title:
-        return 1
-    return 0
+def _match_score(query: str, url: str, title: str, host: str) -> tuple[int, str]:
+    if query == host or query == url:
+        return (4, "url")
+    if query == title:
+        return (4, "title")
+    if url.startswith(query) or host.startswith(query):
+        return (3, "url")
+    if title.startswith(query):
+        return (3, "title")
+    host_words = [word for word in re.split(r"[^a-z0-9]+", host) if word]
+    title_words = [word for word in re.split(r"[^a-z0-9]+", title) if word]
+    if any(word.startswith(query) for word in host_words):
+        return (2, "url")
+    if any(word.startswith(query) for word in title_words):
+        return (2, "title")
+    if query in url:
+        return (1, "url")
+    if query in title:
+        return (1, "title")
+    return (0, "")
 
 
 def rank_matches(
@@ -140,7 +149,7 @@ def rank_matches(
             host = urlsplit(url).hostname or ""
         except ValueError:
             host = ""
-        score = _match_score(query, url.lower(), title.lower(), host.lower())
+        score, matched = _match_score(query, url.lower(), title.lower(), host.lower())
         if score == 0:
             continue
         ts = item.get("ts")
@@ -157,6 +166,7 @@ def rank_matches(
             "title": title,
             "icon": str(item.get("icon", "") or ""),
             "source": "history",
+            "matched": matched,
         }
         previous = best.get(url)
         if previous is None or key > previous[0]:

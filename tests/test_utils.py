@@ -10,6 +10,7 @@ from monobrowser import utils
 from monobrowser.utils import (
     build_url,
     get_version,
+    input_intent,
     internal_url_action,
     is_external_url,
     is_likely_url,
@@ -45,6 +46,37 @@ def test_is_likely_url_true(text: str) -> None:
 )
 def test_is_likely_url_false(text: str) -> None:
     assert is_likely_url(text) is False
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "https://example.com",
+        "example.com",
+        "github.com/foo/bar",
+        "localhost:8000",
+        "127.0.0.1:5000",
+        "about:version",
+        "mailto:foo@bar",
+        "ftp://files.example.com",
+    ],
+)
+def test_input_intent_url(text: str) -> None:
+    assert input_intent(text) == "url"
+
+
+@pytest.mark.parametrize(
+    "text",
+    ["git", "git hub", "chat mignon", "git.commit", "github", "hello.invalidtld"],
+)
+def test_input_intent_query(text: str) -> None:
+    assert input_intent(text) == "query"
+
+
+def test_input_intent_uses_known_hosts() -> None:
+    assert input_intent("myhost", {"myhost"}) == "url"
+    assert input_intent("sub.myhost", {"myhost"}) == "url"
+    assert input_intent("myhost", set()) == "query"
 
 
 def test_build_url_adds_https() -> None:

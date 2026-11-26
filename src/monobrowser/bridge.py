@@ -132,9 +132,23 @@ class Bridge(QObject):
     def version(self) -> str:
         return utils.get_version()
 
+    def _known_hosts(self) -> set[str]:
+        hosts: set[str] = set()
+        for entry in history.entries():
+            host = QUrl(str(entry.get("url", ""))).host().lower()
+            if host:
+                hosts.add(host)
+        return hosts
+
     @pyqtSlot(str, result="QString")
     def resolveAddress(self, text: str) -> str:
-        return utils.resolve_address_text(text, self._search_engine)
+        return utils.resolve_address_text(
+            text, self._search_engine, self._known_hosts()
+        )
+
+    @pyqtSlot(str, result="QString")
+    def inputIntent(self, text: str) -> str:
+        return utils.input_intent(text, self._known_hosts())
 
     @pyqtSlot(str)
     def requestSuggestions(self, text: str) -> None:
