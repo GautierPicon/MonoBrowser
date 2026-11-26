@@ -58,6 +58,9 @@ RowLayout {
 
     function clearSuggestions() {
         suggestTimer.stop()
+        searchDebounce.stop()
+        localModel.clear()
+        searchModel.clear()
         suggestModel.clear()
     }
 
@@ -67,21 +70,80 @@ RowLayout {
             return
         }
         var matches = root.bridge.suggestMatches(addressInput.text.trim(), root.suggestLimit)
-        suggestModel.clear()
+        localModel.clear()
         for (var i = 0; i < matches.length; ++i) {
             var match = matches[i]
-            suggestModel.append({
+            localModel.append({
                 url: String(match.url),
                 title: String(match.title)
             })
         }
-        suggestView.currentIndex = suggestModel.count > 0 ? 0 : -1
+        root.rebuildSuggestions()
+    }
+
+    function requestSearchSuggestions() {
+        if (!root.bridge || !root.bridge.suggestionsEnabled
+                || addressInput.text.trim() === "")
+            return
+        root.bridge.requestSuggestions(addressInput.text.trim())
+    }
+
+    function rebuildSuggestions() {
+        var selected = ""
+        var previous = suggestView.currentIndex
+        if (previous >= 0 && previous < suggestModel.count) {
+            var current = suggestModel.get(previous)
+            if (!current.header)
+                selected = current.query !== "" ? current.query : current.url
+        }
+        suggestModel.clear()
+        for (var i = 0; i < localModel.count; ++i) {
+            var local = localModel.get(i)
+            suggestModel.append({
+                url: local.url,
+                title: local.title,
+                query: "",
+                header: false
+            })
+        }
+        if (searchModel.count > 0) {
+            suggestModel.append({
+                url: "",
+                title: "Search suggestions",
+                query: "",
+                header: true
+            })
+            for (var j = 0; j < searchModel.count; ++j) {
+                var value = searchModel.get(j).value
+                suggestModel.append({
+                    url: "Search with DuckDuckGo",
+                    title: value,
+                    query: value,
+                    header: false
+                })
+            }
+        }
+        var restored = -1
+        var first = -1
+        for (var k = 0; k < suggestModel.count; ++k) {
+            var item = suggestModel.get(k)
+            if (item.header)
+                continue
+            if (first < 0)
+                first = k
+            if ((item.query !== "" ? item.query : item.url) === selected)
+                restored = k
+        }
+        suggestView.currentIndex = restored >= 0 ? restored : first
     }
 
     function acceptSuggestion(index, navigate) {
         if (index < 0 || index >= suggestModel.count)
             return
-        var target = suggestModel.get(index).url
+        var item = suggestModel.get(index)
+        if (item.header)
+            return
+        var target = item.query !== "" ? item.query : item.url
         addressInput.text = target
         addressInput.cursorPosition = target.length
         addressInput.deselect()
@@ -104,6 +166,41 @@ RowLayout {
         interval: 120
         repeat: false
         onTriggered: root.refreshSuggestions()
+    }
+
+    Timer {
+        id: searchDebounce
+        interval: 180
+        repeat: false
+        onTriggered: root.requestSearchSuggestions()
+    }
+
+    ListModel { id: localModel }
+    ListModel { id: searchModel }
+
+    Connections {
+        target: root.bridge
+        ignoreUnknownSignals: true
+
+        function onSuggestionsReady(query, values) {
+            if (query !== addressInput.text.trim() || !addressInput.activeFocus)
+                return
+            searchModel.clear()
+            for (var i = 0; i < values.length; ++i)
+                searchModel.append({ value: values[i] })
+            root.rebuildSuggestions()
+        }
+
+        function onSuggestionsEnabledChanged() {
+            searchModel.clear()
+            root.rebuildSuggestions()
+        }
+
+        function onSearchEngineChanged() {
+            searchModel.clear()
+            searchDebounce.stop()
+            root.rebuildSuggestions()
+        }
     }
 
     NavButton {
@@ -195,8 +292,10 @@ RowLayout {
                 root.typedText = text
                 if (text.trim() === "")
                     root.clearSuggestions()
-                else
+                else {
                     suggestTimer.restart()
+                    searchDebounce.restart()
+                }
             }
 
             onAccepted: {
@@ -215,8 +314,10 @@ RowLayout {
                     text = root.address
                     root.typedText = text
                     selectAll()
-                    if (root.completeOnFocus && text.trim() !== "")
+                    if (root.completeOnFocus && text.trim() !== "") {
                         root.refreshSuggestions()
+                        searchDebounce.restart()
+                    }
                 } else {
                     root.editing = false
                     root.clearSuggestions()
@@ -228,15 +329,20 @@ RowLayout {
                 if (!root.suggestOpen)
                     return
                 event.accepted = true
-                suggestView.currentIndex = Math.max(0, suggestView.currentIndex - 1)
+                var index = suggestView.currentIndex - 1
+                while (index >= 0 && suggestModel.get(index).header)
+                    --index
+                suggestView.currentIndex = Math.max(0, index)
             }
 
             Keys.onDownPressed: function (event) {
                 if (!root.suggestOpen)
                     return
                 event.accepted = true
-                suggestView.currentIndex = Math.min(suggestModel.count - 1,
-                                                    suggestView.currentIndex + 1)
+                var index = suggestView.currentIndex + 1
+                while (index < suggestModel.count && suggestModel.get(index).header)
+                    ++index
+                suggestView.currentIndex = Math.min(suggestModel.count - 1, index)
             }
 
             Keys.onTabPressed: function (event) {
@@ -293,14 +399,39 @@ RowLayout {
                     required property int index
                     required property string title
                     required property string url
+                    required property string query
+                    required property bool header
 
                     width: suggestView.width
-                    height: 32
+                    height: row.header ? 24 : 32
 
                     Rectangle {
                         anchors.fill: parent
                         radius: 4
-                        color: suggestView.currentIndex === row.index ? Theme.menuHover : "transparent"
+                        color: !row.header && suggestView.currentIndex === row.index ? Theme.menuHover : "transparent"
+                    }
+
+                    Row {
+                        anchors.left: parent.left
+                        anchors.leftMargin: 10
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 6
+                        visible: row.header
+
+                        IconImage {
+                            bridge: root.bridge
+                            iconName: "svg/search.svg"
+                            color: Theme.menuTextDim
+                            size: 14
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
+                        Text {
+                            text: row.title
+                            color: Theme.menuTextDim
+                            font.pixelSize: 11
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
                     }
 
                     Column {
@@ -310,6 +441,7 @@ RowLayout {
                         anchors.rightMargin: 10
                         anchors.verticalCenter: parent.verticalCenter
                         spacing: 1
+                        visible: !row.header
 
                         Text {
                             width: parent.width
@@ -330,6 +462,7 @@ RowLayout {
 
                     MouseArea {
                         anchors.fill: parent
+                        enabled: !row.header
                         onPressed: suggestView.currentIndex = row.index
                         onClicked: root.acceptSuggestion(row.index, true)
                     }
