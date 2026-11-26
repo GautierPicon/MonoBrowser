@@ -104,6 +104,10 @@ class Bridge(QObject):
     def resolveAddress(self, text: str) -> str:
         return utils.resolve_address_text(text, self._search_engine)
 
+    @pyqtSlot(str, result="bool")
+    def isExternalUrl(self, url: str) -> bool:
+        return utils.is_external_url(url)
+
     @pyqtSlot(str, str, result="QString")
     def iconUrl(self, name: str, color: str) -> str:
         return utils.icon_data_url(name, color)

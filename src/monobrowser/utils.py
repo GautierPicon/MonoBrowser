@@ -61,12 +61,42 @@ if not ICON_PATH.exists():
     ICON_PATH = assets_path("icons/icon.png")
 TOML_PATH = _project_root() / "pyproject.toml"
 
-KNOWN_SCHEMES = ("http://", "https://", "ftp://", "file://", "about:", "chrome://")
+KNOWN_SCHEMES = ("http://", "https://", "file://", "about:", "chrome://")
+
+EXTERNAL_SCHEMES = frozenset(
+    {
+        "mailto",
+        "magnet",
+        "webcal",
+        "webcals",
+        "slack",
+        "tel",
+        "sms",
+        "facetime",
+        "skype",
+        "discord",
+        "spotify",
+        "steam",
+        "ftp",
+        "sftp",
+    }
+)
+_SCHEME_RE = re.compile(r"^([a-zA-Z][a-zA-Z0-9+.-]*):")
+
+
+def url_scheme(text: str) -> str:
+    match = _SCHEME_RE.match(text.strip())
+    return match.group(1).lower() if match else ""
+
+
+def is_external_url(text: str) -> bool:
+    return url_scheme(text) in EXTERNAL_SCHEMES
 
 
 def is_likely_url(text: str) -> bool:
     return bool(
         text.lower().startswith(KNOWN_SCHEMES)
+        or is_external_url(text)
         or re.search(r"\.[a-zA-Z]{2,}(:\d+)?(/|$)", text)
         or re.match(r"^[\w-]+\.[\w-]+", text)
         or text.startswith(("localhost", "127.", "10.", "192.168."))
@@ -84,7 +114,7 @@ def get_version() -> str:
 
 
 def build_url(text: str) -> QUrl:
-    if not text.lower().startswith(KNOWN_SCHEMES):
+    if not text.lower().startswith(KNOWN_SCHEMES) and not is_external_url(text):
         text = "https://" + text
     return QUrl(text)
 
