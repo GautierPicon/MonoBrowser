@@ -35,6 +35,7 @@ def store(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> QSettings:
     settings = QSettings(str(ini), QSettings.Format.IniFormat)
     monkeypatch.setattr(session, "_SETTINGS", settings)
     monkeypatch.setattr(session, "_adblock_enabled_cache", None)
+    monkeypatch.setattr(session, "_antitrack_enabled_cache", None)
     return settings
 
 
@@ -78,12 +79,16 @@ def test_interceptor_blocks_and_honors_toggle(store: QSettings, hosts: Path) -> 
         def __init__(self, url: str) -> None:
             self._url = url
             self.blocked = False
+            self.headers: dict[bytes, bytes] = {}
 
         def requestUrl(self) -> QUrl:
             return QUrl(self._url)
 
         def block(self, value: bool) -> None:
             self.blocked = value
+
+        def setHttpHeader(self, name: bytes, value: bytes) -> None:
+            self.headers[name] = value
 
     interceptor = adblock.AdblockInterceptor()
     info = FakeInfo("https://ads.example.com/banner.js")
@@ -98,6 +103,7 @@ def test_interceptor_blocks_and_honors_toggle(store: QSettings, hosts: Path) -> 
     info = FakeInfo("https://ads.example.com/banner.js")
     interceptor.interceptRequest(info)  # type: ignore[arg-type]
     assert info.blocked is False
+    assert info.headers == {b"DNT": b"1", b"Sec-GPC": b"1"}
 
 
 def test_internal_url_action_set_adblock() -> None:

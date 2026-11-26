@@ -24,6 +24,23 @@ def test_settings_html_marks_selected_engine() -> None:
     )
 
 
+def test_settings_html_antitrack_toggle_row() -> None:
+    marker = 'href="https://monobrowser.internal/set-antitrack?toggle"'
+    html = about_pages.settings_html("google", True, "system", True, False, True)
+    i = html.index(marker)
+    snippet = html[max(0, i - 250) : i + 120]
+    assert 'class="switch on" id="antitrack-switch"' in snippet
+    assert 'aria-checked="true"' in snippet
+    assert "does not block trackers" in html
+    assert "{{" not in html
+
+    html = about_pages.settings_html("google", True, "system", True, False, False)
+    i = html.index(marker)
+    snippet = html[max(0, i - 250) : i + 120]
+    assert 'class="switch" id="antitrack-switch"' in snippet
+    assert 'aria-checked="false"' in snippet
+
+
 def test_error_html_escapes_url_and_reason() -> None:
     url = 'https://example.com/<script>alert("x")</script>'
     reason = 'Name not resolved & "host" <unknown>'

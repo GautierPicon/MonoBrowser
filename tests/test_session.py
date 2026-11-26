@@ -14,6 +14,7 @@ def store(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> QSettings:
     settings = QSettings(str(ini), QSettings.Format.IniFormat)
     monkeypatch.setattr(session, "_SETTINGS", settings)
     monkeypatch.setattr(session, "_adblock_enabled_cache", None)
+    monkeypatch.setattr(session, "_antitrack_enabled_cache", None)
     return settings
 
 
@@ -145,6 +146,17 @@ def test_save_session_slot_arity_matches_qml_call() -> None:
     ]
     assert len(slots) == 1
     assert slots[0].parameterCount() == 7
+
+
+def test_antitrack_enabled_default_true(store: QSettings) -> None:
+    assert session.antitrack_enabled() is True
+
+
+def test_antitrack_flag_roundtrip(store: QSettings) -> None:
+    session.set_antitrack_enabled(False)
+    assert session.antitrack_enabled() is False
+    session.set_antitrack_enabled(True)
+    assert session.antitrack_enabled() is True
 
 
 def test_theme_mode_defaults_to_system(store: QSettings) -> None:

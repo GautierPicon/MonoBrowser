@@ -1,4 +1,9 @@
-from monobrowser import utils
+from pathlib import Path
+
+import pytest
+from PyQt6.QtCore import QSettings
+
+from monobrowser import session, utils
 from monobrowser.bridge import Bridge
 
 
@@ -32,6 +37,26 @@ def test_icon_url_replaces_current_color() -> None:
     bridge = Bridge()
     url = bridge.iconUrl("svg/lock/lock.svg", "#123456")
     assert url.startswith("data:image/svg+xml;base64,")
+
+
+def test_antitrack_enabled_roundtrip(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    settings = QSettings(str(tmp_path / "session.ini"), QSettings.Format.IniFormat)
+    monkeypatch.setattr(session, "_SETTINGS", settings)
+    monkeypatch.setattr(session, "_antitrack_enabled_cache", None)
+
+    bridge = Bridge()
+    assert bridge.antitrackEnabled is True
+    setattr(bridge, "antitrackEnabled", False)
+    assert bridge.antitrackEnabled is False
+    html = bridge.settingsHtml()
+    marker = 'href="https://monobrowser.internal/set-antitrack?toggle"'
+    i = html.index(marker)
+    assert 'aria-checked="false"' in html[max(0, i - 250) : i + 120]
+
+    setattr(bridge, "antitrackEnabled", True)
+    assert bridge.antitrackEnabled is True
 
 
 def test_html_helpers() -> None:

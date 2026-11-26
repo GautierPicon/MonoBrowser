@@ -132,6 +132,21 @@ def test_icon_data_url_replaces_current_color() -> None:
     assert "currentColor" not in svg
 
 
+def test_internal_url_action_set_antitrack() -> None:
+    assert internal_url_action("https://monobrowser.internal/set-antitrack?toggle") == (
+        "set-antitrack",
+        "toggle",
+    )
+    assert internal_url_action("https://monobrowser.internal/set-antitrack?") == (
+        "",
+        "",
+    )
+    assert internal_url_action("https://monobrowser.internal/set-antitrack?on") == (
+        "",
+        "",
+    )
+
+
 def test_internal_url_action_set_theme() -> None:
     assert internal_url_action("https://monobrowser.internal/set-theme?light") == (
         "set-theme",
