@@ -6,6 +6,7 @@ WebEngineView {
     id: view
 
     property int tabIndex: -1
+    property var bridge: null
     property var pendingRequest: null
     property bool certificateError: false
     property bool cosmeticCss: false
@@ -17,8 +18,17 @@ WebEngineView {
     signal hoveredLink(string target)
 
     settings.playbackRequiresUserGesture: false
+    settings.unknownUrlSchemePolicy: WebEngineSettings.UnknownUrlSchemePolicy.AllowAllUnknownUrlSchemes
 
     focus: true
+
+    onNavigationRequested: function (request) {
+        var target = String(request.url)
+        if (!bridge || !bridge.isExternalUrl(target))
+            return
+        request.reject()
+        Qt.openUrlExternally(request.url)
+    }
 
     onUrlChanged: {
         certificateError = false
@@ -41,6 +51,11 @@ WebEngineView {
     }
 
     onNewWindowRequested: function (request) {
+        var target = String(request.requestedUrl)
+        if (bridge && bridge.isExternalUrl(target)) {
+            Qt.openUrlExternally(request.requestedUrl)
+            return
+        }
         pendingRequest = request
         popupRequested()
     }

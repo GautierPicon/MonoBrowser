@@ -105,6 +105,7 @@ Item {
     function createView() {
         var view = tabViewComponent.createObject(contentArea,
                                                   { tabIndex: views.length,
+                                                    bridge: manager.bridge,
                                                     cosmeticCss: manager.adblockCosmetic })
         if (view === null) {
             console.warn("WebTab.qml: failed to create tab view")
@@ -209,6 +210,9 @@ Item {
                 loadAbout(view, "newtab")
             return
         }
+
+        if (bridge.isExternalUrl(text))
+            return
 
         setRole(index, "title", view.title !== "" ? view.title : "New Tab")
         setRole(index, "url", text)
