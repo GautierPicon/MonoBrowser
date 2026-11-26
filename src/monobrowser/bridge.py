@@ -8,7 +8,7 @@ import PyQt6.QtCore as QtCore
 from PyQt6.QtCore import QObject, QProcess, QTimer, QUrl, pyqtSignal, pyqtSlot
 from PyQt6.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 
-from monobrowser import history, session, suggestions, utils
+from monobrowser import adblock, history, session, suggestions, utils
 from monobrowser.about_pages import (
     error_html,
     history_html,
@@ -181,6 +181,10 @@ class Bridge(QObject):
         if failed:
             return
         self.suggestionsReady.emit(query, suggestions.parse_suggestions(payload))
+
+    @pyqtSlot(str, result="QString")
+    def cosmeticCss(self, url: str) -> str:
+        return adblock.cosmetic_selectors(url)
 
     @pyqtSlot(str, result="bool")
     def isExternalUrl(self, url: str) -> bool:

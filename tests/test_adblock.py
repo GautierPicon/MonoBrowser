@@ -19,7 +19,11 @@ FILTER_SAMPLE = """\
 ||scoped.example.net^$domain=host.example.com
 ||excluded.example.net^$domain=~host.example.com
 ||script.example.com^$script
-host.example.com##.ad
+example.com##.ad-banner
+example.com#@#.keep-this
+sub.example.net##.promo, .promo-alt
+##.global-ad
+example.com##:has-text(special)
 """
 
 
@@ -30,11 +34,9 @@ def filters(
     path = tmp_path / "filters.txt"
     path.write_text(FILTER_SAMPLE, encoding="utf-8")
     monkeypatch.setattr(adblock, "ADBLOCK_FILTER_PATHS", (path,))
-    adblock.filter_rules.cache_clear()
-    adblock.blocked_domains.cache_clear()
+    adblock.filters.cache_clear()
     yield path
-    adblock.filter_rules.cache_clear()
-    adblock.blocked_domains.cache_clear()
+    adblock.filters.cache_clear()
 
 
 @pytest.fixture()
@@ -89,12 +91,32 @@ def test_domain_option(filters: Path) -> None:
     assert adblock.is_blocked(excluded, "https://host.example.com/") is False
 
 
+def test_cosmetic_rules_are_parsed_and_scoped(filters: Path, store: QSettings) -> None:
+    session.set_cosmetic_rules_enabled(True)
+    css = adblock.cosmetic_selectors("https://example.com/page")
+    assert ".ad-banner" in css
+    assert ".keep-this" not in css
+    assert ".global-ad" not in css
+    assert "has-text" not in css
+    assert adblock.cosmetic_selectors("") == ""
+    assert adblock.cosmetic_selectors("https://other.example/") == ""
+
+
+def test_cosmetic_rules_subdomains(filters: Path, store: QSettings) -> None:
+    session.set_cosmetic_rules_enabled(True)
+    css = adblock.cosmetic_selectors("https://sub.example.net/x")
+    assert ".promo" in css
+    assert ".promo-alt" in css
+
+
+def test_cosmetic_rules_disabled_by_default(filters: Path, store: QSettings) -> None:
+    assert adblock.cosmetic_selectors("https://example.com/") == ""
+
+
 def test_bundled_lists_are_parsed() -> None:
-    adblock.filter_rules.cache_clear()
-    adblock.blocked_domains.cache_clear()
+    adblock.filters.cache_clear()
     assert len(adblock.blocked_domains()) > 1000
-    adblock.filter_rules.cache_clear()
-    adblock.blocked_domains.cache_clear()
+    adblock.filters.cache_clear()
 
 
 def test_adblock_enabled_default_true(store: QSettings) -> None:

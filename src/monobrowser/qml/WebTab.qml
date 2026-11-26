@@ -39,8 +39,10 @@ WebEngineView {
     onIconChanged: pageChanged()
     onLoadingChanged: {
         pageChanged()
-        if (view.cosmeticCss)
-            view.runJavaScript(PageScripts.adblockCosmeticScript())
+        if (view.cosmeticCss) {
+            const extra = bridge ? bridge.cosmeticCss(String(view.url)) : ""
+            view.runJavaScript(PageScripts.adblockCosmeticScript(extra))
+        }
     }
     onLoadProgressChanged: progressChanged()
     onLinkHovered: function (url) { hoveredLink(url.toString()) }

@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from PyQt6.QtCore import QSettings
 
-from monobrowser import history, session, utils
+from monobrowser import adblock, history, session, utils
 from monobrowser.bridge import Bridge
 
 
@@ -95,6 +95,21 @@ def test_icon_url_replaces_current_color() -> None:
     bridge = Bridge()
     url = bridge.iconUrl("svg/lock/lock.svg", "#123456")
     assert url.startswith("data:image/svg+xml;base64,")
+
+
+def test_cosmetic_css_slot(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    settings = QSettings(str(tmp_path / "session.ini"), QSettings.Format.IniFormat)
+    monkeypatch.setattr(session, "_SETTINGS", settings)
+    path = tmp_path / "filters.txt"
+    path.write_text("example.com##.ad-banner\n", encoding="utf-8")
+    monkeypatch.setattr(adblock, "ADBLOCK_FILTER_PATHS", (path,))
+    adblock.filters.cache_clear()
+
+    bridge = Bridge()
+    assert bridge.cosmeticCss("https://example.com/") == ""
+    setattr(bridge, "cosmeticRulesEnabled", True)
+    assert ".ad-banner" in bridge.cosmeticCss("https://example.com/")
+    adblock.filters.cache_clear()
 
 
 def test_cosmetic_rules_enabled_roundtrip(

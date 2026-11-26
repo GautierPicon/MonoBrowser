@@ -133,7 +133,11 @@ function pipShowPlayerChromeScript() {
  if (style) style.remove();
 })()`;
 }
-function adblockCosmeticScript() {
+function adblockCosmeticScript(extraSelectors) {
+  var base = 'iframe[src*="doubleclick.net"],iframe[src*="googlesyndication.com"],iframe[src*="googleadservices.com"],iframe[src*="adservice.google.com"],iframe[src*="amazon-adsystem.com"],iframe[src*="adnxs.com"],iframe[src*="taboola.com"],iframe[src*="outbrain.com"],ins.adsbygoogle,iframe[id^="aswift"],iframe[id^="google_ads"],div[id^="div-gpt-ad"],div[id^="google_ad"],.adsbygoogle,ins[data-ad-client]';
+  var extra = extraSelectors || '';
+  var css = extra ? base + ',' + extra : base;
+  var literal = JSON.stringify(css + '{display:none !important}');
   return `(function () {
  function inject () {
    if (document.getElementById('adblock-cosmetic-style')) return true;
@@ -141,8 +145,7 @@ function adblockCosmeticScript() {
    if (!target) return false;
    var s = document.createElement('style');
    s.id = 'adblock-cosmetic-style';
-   var c = 'iframe[src*="doubleclick.net"],iframe[src*="googlesyndication.com"],iframe[src*="googleadservices.com"],iframe[src*="adservice.google.com"],iframe[src*="amazon-adsystem.com"],iframe[src*="adnxs.com"],iframe[src*="taboola.com"],iframe[src*="outbrain.com"],ins.adsbygoogle,iframe[id^="aswift"],iframe[id^="google_ads"],div[id^="div-gpt-ad"],div[id^="google_ad"],.adsbygoogle,ins[data-ad-client]';
-   s.textContent = c + '{display:none !important}';
+   s.textContent = ${literal};
    target.appendChild(s);
    return true;
  }

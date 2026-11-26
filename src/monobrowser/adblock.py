@@ -53,10 +53,33 @@ def _parse_options(options: str) -> FilterRule | None:
     return FilterRule(third_party, frozenset(included), frozenset(excluded))
 
 
+_PROCEDURAL_RE = re.compile(r":has-text|:contains\(|-abp-|:matches-css|:xpath|\\")
+MAX_COSMETIC_SELECTORS = 500
+
+
+@dataclass(frozen=True)
+class FilterData:
+    exceptions: frozenset[str]
+    rules: dict[str, tuple[FilterRule, ...]]
+    cosmetic: dict[str, tuple[str, ...]]
+    cosmetic_exceptions: dict[str, tuple[str, ...]]
+
+
+def _cosmetic_domains(raw: str) -> list[str]:
+    domains: list[str] = []
+    for value in raw.split(","):
+        domain = value.strip().lower().lstrip("*.").rstrip(".")
+        if _DOMAIN_RE.match(domain):
+            domains.append(domain)
+    return domains
+
+
 @lru_cache(maxsize=1)
-def filter_rules() -> tuple[frozenset[str], dict[str, tuple[FilterRule, ...]]]:
+def filters() -> FilterData:
     exceptions: set[str] = set()
     rules: dict[str, list[FilterRule]] = {}
+    cosmetic: dict[str, set[str]] = {}
+    cosmetic_exceptions: dict[str, set[str]] = {}
     for path in ADBLOCK_FILTER_PATHS:
         try:
             text = path.read_text(encoding="utf-8", errors="ignore")
@@ -64,7 +87,23 @@ def filter_rules() -> tuple[frozenset[str], dict[str, tuple[FilterRule, ...]]]:
             continue
         for raw in text.splitlines():
             line = raw.strip()
-            if not line or line.startswith(("!", "[")) or "##" in line or "#@#" in line:
+            if not line or line.startswith(("!", "[")):
+                continue
+            if "##" in line or "#@#" in line:
+                negated = "#@#" in line
+                domain_part, _, selector = (
+                    line.partition("#@#") if negated else line.partition("##")
+                )
+                selector = selector.strip()[:512]
+                if (
+                    not selector
+                    or _PROCEDURAL_RE.search(selector)
+                    or any(char in selector for char in "{};@")
+                ):
+                    continue
+                target = cosmetic_exceptions if negated else cosmetic
+                for domain in _cosmetic_domains(domain_part):
+                    target.setdefault(domain, set()).add(selector)
                 continue
             negated = line.startswith("@@")
             if negated:
@@ -85,12 +124,27 @@ def filter_rules() -> tuple[frozenset[str], dict[str, tuple[FilterRule, ...]]]:
                     exceptions.add(domain)
                 continue
             rules.setdefault(domain, []).append(parsed)
-    return frozenset(exceptions), {
-        domain: tuple(values) for domain, values in rules.items()
-    }
+    return FilterData(
+        frozenset(exceptions),
+        {domain: tuple(values) for domain, values in rules.items()},
+        {domain: tuple(sorted(values)) for domain, values in cosmetic.items()},
+        {
+            domain: tuple(sorted(values))
+            for domain, values in cosmetic_exceptions.items()
+        },
+    )
 
 
-@lru_cache(maxsize=1)
+def filter_rules() -> tuple[frozenset[str], dict[str, tuple[FilterRule, ...]]]:
+    data = filters()
+    return data.exceptions, data.rules
+
+
+def cosmetic_rules() -> tuple[dict[str, tuple[str, ...]], dict[str, tuple[str, ...]]]:
+    data = filters()
+    return data.cosmetic, data.cosmetic_exceptions
+
+
 def blocked_domains() -> frozenset[str]:
     _, rules = filter_rules()
     return frozenset(rules)
@@ -142,6 +196,32 @@ def is_blocked(url: str, first_party_url: str = "") -> bool:
                 continue
             return True
     return False
+
+
+def cosmetic_selectors(url: str) -> str:
+    if not session.cosmetic_rules_enabled():
+        return ""
+    host = QUrl(url).host().lower().rstrip(".")
+    if not host:
+        return ""
+    suffixes = _suffixes(host)
+    rules, exceptions = cosmetic_rules()
+    excluded: set[str] = set()
+    for candidate in suffixes:
+        excluded.update(exceptions.get(candidate, ()))
+    selected: list[str] = []
+    seen: set[str] = set()
+    for candidate in suffixes:
+        for selector in rules.get(candidate, ()):
+            if selector in excluded or selector in seen:
+                continue
+            seen.add(selector)
+            selected.append(selector)
+            if len(selected) >= MAX_COSMETIC_SELECTORS:
+                break
+        if len(selected) >= MAX_COSMETIC_SELECTORS:
+            break
+    return ",".join(selected)
 
 
 _blocked_count = 0
