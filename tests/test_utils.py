@@ -11,6 +11,7 @@ from monobrowser.utils import (
     build_url,
     get_version,
     internal_url_action,
+    is_external_url,
     is_likely_url,
     resolve_address_text,
 )
@@ -58,6 +59,52 @@ def test_build_url_keeps_scheme() -> None:
 
 def test_build_url_keeps_chrome_scheme() -> None:
     assert build_url("chrome://settings").toString() == "chrome://settings"
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "mailto:foo@bar",
+        "MAILTO:foo@bar?subject=Hi",
+        "magnet:?xt=urn:btih:abc",
+        "webcal://example.com/cal.ics",
+        "slack://channel?id=C1",
+        "tel:+33123456789",
+        "ftp://files.example.com",
+    ],
+)
+def test_is_external_url_true(text: str) -> None:
+    assert is_external_url(text) is True
+    assert is_likely_url(text) is True
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "https://example.com",
+        "file:///Users/me/a.html",
+        "about:settings",
+        "chrome://settings",
+        "javascript:alert(1)",
+        "data:text/html,hi",
+    ],
+)
+def test_is_external_url_false(text: str) -> None:
+    assert is_external_url(text) is False
+
+
+def test_ftp_removed_from_known_schemes() -> None:
+    assert "ftp://" not in utils.KNOWN_SCHEMES
+
+
+def test_build_url_preserves_external_scheme() -> None:
+    assert build_url("mailto:foo@bar").toString() == "mailto:foo@bar"
+    assert build_url("magnet:?xt=urn:btih:abc").toString() == "magnet:?xt=urn:btih:abc"
+
+
+def test_resolve_address_text_external_scheme() -> None:
+    assert resolve_address_text("mailto:foo@bar") == "mailto:foo@bar"
+    assert resolve_address_text("ftp://files.example.com") == "ftp://files.example.com"
 
 
 def test_get_version_matches_pyproject() -> None:

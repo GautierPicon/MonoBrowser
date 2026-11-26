@@ -21,6 +21,15 @@ def test_resolve_address_uses_search_engine() -> None:
     )
 
 
+def test_external_url_slots() -> None:
+    bridge = Bridge()
+    assert bridge.isExternalUrl("mailto:foo@bar") is True
+    assert bridge.isExternalUrl("magnet:?xt=urn:btih:abc") is True
+    assert bridge.isExternalUrl("https://example.com/") is False
+    assert bridge.isExternalUrl("javascript:alert(1)") is False
+    assert bridge.isExternalUrl("file:///tmp/a.html") is False
+
+
 def test_internal_route() -> None:
     bridge = Bridge()
     assert bridge.internalRoute("https://monobrowser.internal/set-search?google") == [
