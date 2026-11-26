@@ -19,10 +19,11 @@ uv run -m monobrowser.main
 
 ## Dependencies
 
-- `src/assets/hosts.txt` — [StevenBlack/hosts](https://github.com/StevenBlack/hosts) (MIT), unified hosts list (adware + malware, 76 104 unique domains as of November 2026). Used for native ad blocking through a QtWebEngine URL request interceptor, no extensions involved. Settings → Ad blocking toggles the network blocker and an optional CSS-based hiding of ad containers. To refresh it:
+- `src/assets/filters/easylist.txt` and `src/assets/filters/easyprivacy.txt` — [EasyList](https://easylist.to/) and EasyPrivacy (GPLv3-or-later / CC BY-SA 3.0-or-later, attribution to the EasyList authors). Used for native ad blocking through a QtWebEngine URL request interceptor: `||domain^` rules and `@@` exceptions are supported, along with `$third-party` and `$domain=` options; cosmetic rules are not evaluated. Settings → Ad blocking toggles the network blocker and an optional CSS-based hiding of ad containers. The bundled lists are a static snapshot; to refresh them:
 
   ```bash
-  curl -fsSL https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts -o src/assets/hosts.txt
+  curl -fsSL https://easylist.to/easylist/easylist.txt -o src/assets/filters/easylist.txt
+  curl -fsSL https://easylist.to/easylist/easyprivacy.txt -o src/assets/filters/easyprivacy.txt
   ```
 
 ## Tests
