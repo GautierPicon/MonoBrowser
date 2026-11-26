@@ -104,6 +104,20 @@ RowLayout {
                 selected = current.query !== "" ? current.query : current.url
         }
         suggestModel.clear()
+        var query = addressInput.text.trim()
+        if (query !== "") {
+            var engine = root.bridge && root.bridge.searchEngine === "google"
+                ? "Google" : "DuckDuckGo"
+            var label = root.inputIntent === "url"
+                ? "Open " + query
+                : "Search " + engine + " for “" + query + "”"
+            suggestModel.append({
+                url: "",
+                title: label,
+                query: query,
+                header: false
+            })
+        }
         for (var i = 0; i < localModel.count; ++i) {
             var local = localModel.get(i)
             suggestModel.append({
@@ -129,20 +143,6 @@ RowLayout {
                     header: false
                 })
             }
-        }
-        var query = addressInput.text.trim()
-        if (query !== "") {
-            var engine = root.bridge && root.bridge.searchEngine === "google"
-                ? "Google" : "DuckDuckGo"
-            var label = root.inputIntent === "url"
-                ? "Open " + query
-                : "Search " + engine + " for “" + query + "”"
-            suggestModel.append({
-                url: "",
-                title: label,
-                query: query,
-                header: false
-            })
         }
         var restored = -1
         var first = -1
