@@ -214,6 +214,15 @@
          aria-checked="{{ANTITRACK_ARIA}}"
          href="https://monobrowser.internal/set-antitrack?toggle" aria-label="Send anti-tracking signals"><span class="knob"></span></a>
     </div>
+    <div class="adblock-row">
+      <div class="adblock-text">
+        <div class="label">Address bar suggestions</div>
+        <div class="url">Sends what you type to DuckDuckGo to show search suggestions. On by default; turning it off stops these requests while local history matches keep working. No suggestion requests are sent with Google selected.</div>
+      </div>
+      <a class="switch{{#suggestions}}" id="suggestions-switch" role="switch"
+         aria-checked="{{SUGGESTIONS_ARIA}}"
+         href="https://monobrowser.internal/set-suggestions?toggle" aria-label="Address bar suggestions"><span class="knob"></span></a>
+    </div>
   </div>
   <script>
     function attachSwitch(el) {
@@ -266,6 +275,7 @@
     attachSwitch(document.getElementById('adblock-switch'));
     attachSwitch(document.getElementById('cosmetic-switch'));
     attachSwitch(document.getElementById('antitrack-switch'));
+    attachSwitch(document.getElementById('suggestions-switch'));
   </script>
   <p class="subtitle subtitle-spaced">Session</p>
   <div class="option-group">

@@ -192,6 +192,11 @@ Item {
             loadAbout(view, "settings")
             return
         }
+        if (action === "set-suggestions") {
+            bridge.suggestionsEnabled = !bridge.suggestionsEnabled
+            loadAbout(view, "settings")
+            return
+        }
         if (action === "clear-history") {
             bridge.clearHistory()
             loadAbout(view, "history")

@@ -5,9 +5,10 @@ from typing import Any
 from urllib.parse import urlsplit
 
 import PyQt6.QtCore as QtCore
-from PyQt6.QtCore import QObject, QProcess, pyqtSignal, pyqtSlot
+from PyQt6.QtCore import QObject, QProcess, QTimer, QUrl, pyqtSignal, pyqtSlot
+from PyQt6.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 
-from monobrowser import history, session, utils
+from monobrowser import history, session, suggestions, utils
 from monobrowser.about_pages import (
     error_html,
     history_html,
@@ -26,10 +27,18 @@ class Bridge(QObject):
     adblockEnabledChanged = pyqtSignal()
     adblockCosmeticChanged = pyqtSignal()
     antitrackEnabledChanged = pyqtSignal()
+    suggestionsEnabledChanged = pyqtSignal()
+    suggestionsReady = pyqtSignal(str, "QStringList")
 
     def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
         self._search_engine = utils.DEFAULT_SEARCH_ENGINE
+        self._suggestions_manager: QNetworkAccessManager | None = None
+        self._suggestions_reply: QNetworkReply | None = None
+        self._suggestions_timer = QTimer(self)
+        self._suggestions_timer.setSingleShot(True)
+        self._suggestions_timer.timeout.connect(self._abortSuggestions)
+        self.searchEngineChanged.connect(self._abortSuggestions)
 
     @pyqtProperty(str, notify=searchEngineChanged)
     def searchEngine(self) -> str:
@@ -96,6 +105,17 @@ class Bridge(QObject):
             session.set_antitrack_enabled(enabled)
             self.antitrackEnabledChanged.emit()
 
+    @pyqtProperty(bool, notify=suggestionsEnabledChanged)
+    def suggestionsEnabled(self) -> bool:
+        return session.suggestions_enabled()
+
+    @suggestionsEnabled.setter  # type: ignore[no-redef]
+    def suggestionsEnabled(self, enabled: bool) -> None:
+        enabled = bool(enabled)
+        if enabled != session.suggestions_enabled():
+            session.set_suggestions_enabled(enabled)
+            self.suggestionsEnabledChanged.emit()
+
     @pyqtProperty(str)
     def version(self) -> str:
         return utils.get_version()
@@ -103,6 +123,52 @@ class Bridge(QObject):
     @pyqtSlot(str, result="QString")
     def resolveAddress(self, text: str) -> str:
         return utils.resolve_address_text(text, self._search_engine)
+
+    @pyqtSlot(str)
+    def requestSuggestions(self, text: str) -> None:
+        self._abortSuggestions()
+        query = text.strip()
+        if not session.suggestions_enabled() or not query:
+            return
+        url = suggestions.suggestion_url(self._search_engine, query)
+        if url is None or utils.is_likely_url(query):
+            return
+        if self._suggestions_manager is None:
+            self._suggestions_manager = QNetworkAccessManager(self)
+        request = QNetworkRequest(QUrl(url))
+        request.setAttribute(
+            QNetworkRequest.Attribute.RedirectPolicyAttribute,
+            QNetworkRequest.RedirectPolicy.NoLessSafeRedirectPolicy,
+        )
+        reply = self._suggestions_manager.get(request)
+        if reply is None:
+            return
+        self._suggestions_reply = reply
+        reply.finished.connect(lambda: self._onSuggestionsFinished(reply, query))
+        self._suggestions_timer.start(suggestions.TIMEOUT_MS)
+
+    def _abortSuggestions(self) -> None:
+        self._suggestions_timer.stop()
+        reply = self._suggestions_reply
+        self._suggestions_reply = None
+        if reply is not None:
+            reply.abort()
+
+    def _onSuggestionsFinished(self, reply: QNetworkReply, query: str) -> None:
+        if self._suggestions_reply is not reply:
+            reply.deleteLater()
+            return
+        self._suggestions_timer.stop()
+        self._suggestions_reply = None
+        if reply.error() == QNetworkReply.NetworkError.OperationCanceledError:
+            reply.deleteLater()
+            return
+        payload = reply.readAll().data().decode("utf-8", errors="ignore")
+        failed = reply.error() != QNetworkReply.NetworkError.NoError
+        reply.deleteLater()
+        if failed:
+            return
+        self.suggestionsReady.emit(query, suggestions.parse_suggestions(payload))
 
     @pyqtSlot(str, result="bool")
     def isExternalUrl(self, url: str) -> bool:
@@ -138,6 +204,7 @@ class Bridge(QObject):
             session.adblock_enabled(),
             session.adblock_cosmetic(),
             antitrack=session.antitrack_enabled(),
+            suggestions=session.suggestions_enabled(),
         )
 
     @pyqtSlot(result="QString")

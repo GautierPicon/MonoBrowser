@@ -12,6 +12,7 @@ THEME_KEY = "theme_mode"
 ADBLOCK_KEY = "adblock_enabled"
 ADBLOCK_COSMETIC_KEY = "adblock_cosmetic"
 ANTITRACK_KEY = "antitrack_enabled"
+SUGGESTIONS_KEY = "search_suggestions"
 THEME_MODES = ("system", "light", "dark")
 MAX_URLS = 50
 MAX_URL_LENGTH = 4096
@@ -124,6 +125,14 @@ def set_antitrack_enabled(enabled: bool) -> None:
     enabled = bool(enabled)
     _SETTINGS.setValue(ANTITRACK_KEY, enabled)
     _antitrack_enabled_cache = enabled
+
+
+def suggestions_enabled() -> bool:
+    return _bool_flag(_SETTINGS.value(SUGGESTIONS_KEY, True), True)
+
+
+def set_suggestions_enabled(enabled: bool) -> None:
+    _SETTINGS.setValue(SUGGESTIONS_KEY, bool(enabled))
 
 
 def adblock_cosmetic() -> bool:
